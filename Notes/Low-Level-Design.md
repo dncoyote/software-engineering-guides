@@ -57,3 +57,95 @@ hondaCity.topSpeed = 180;
 | default | :white_check_mark:| :white_check_mark:| :x:| :x:|
 | `protected` | :white_check_mark:| :white_check_mark:| :white_check_mark:| :x:|
 | `public` | :white_check_mark:| :white_check_mark:| :white_check_mark:| :white_check_mark:|
+
+- Take the example of a Bank Vault System.
+    - `private` - Vault lock code (only the vault itself knows it)
+    - `default` - Internal intercom system (used within the same bank branch)
+    - `protected` - Branch Manager access card (shared with subordinates from related branches)
+    - `public` - Front Desk Information (Any visitor can see).
+
+### Significance of Access Modifiers in LLD
+- It aids in encapsulation by exposing only whats necessary outside the classes.
+- Internal/fields and methods are safe.
+- `private` and `protected` reflect clear boundaries of responsibility.
+- Public interfaces can be unit-tested and mocked easily.
+- Private methods can be changed freely without affecting other modules.
+- In a real product you want to protect critical internal logic from being invoked externally.
+- It is ideal to keep the internal state of each class private and expose only domain-specific behavior via public methods. 
+- If there's some shared logic within a package or for subclassing, It is optimal to consider protected or default.
+```java
+public class BankAccount {
+
+    // private field: only this class can access it
+    private double balance;
+
+    // public constructor: accessible to anyone
+    public BankAccount(double initialAmount) {
+        if (initialAmount < 0) {
+            throw new IllegalArgumentException("Initial balance cannot be negative.");
+        }
+        this.balance = initialAmount;
+    }
+
+    // public method: safe way to get current balance
+    public double getBalance() {
+        return balance;
+    }
+
+    // public method: deposit money (validations done here)
+    public void deposit(double amount) {
+        if (amount <= 0) {
+            System.out.println("Deposit amount must be positive.");
+            return;
+        }
+        balance += amount;
+    }
+
+    // public method: withdraw with validation
+    public void withdraw(double amount) {
+        if (amount > balance) {
+            System.out.println("Insufficient funds.");
+            return;
+        }
+        balance -= amount;
+    }
+
+    // private method: internal logic for fraud detection
+    private boolean isSuspiciousTransaction(double amount) {
+        return amount > 1000000;
+    }
+}
+
+---
+
+public class Main {
+    public static void main(String[] args) {
+        BankAccount account = new BankAccount(5000);
+        account.deposit(1000);
+        System.out.println(account.getBalance());  // ✅ Works
+
+        // account.balance = 0;        ❌ Compile error: balance is private
+        // account.isSuspiciousTransaction(5000);  ❌ private method
+    }
+}
+```
+## Fields and Methods
+- Fields (also known as attributes, instance variables, or data members) are variables defined inside a class that hold the state of an object.
+- Methods are blocks of code inside a class that define the object’s behavior — what the object can do or what can be done to it.
+
+## Constructors
+- Constructor is a special method in a class that is used to create and initialize an object when it is instantiated.
+    - It has the same name as the class.
+    - It does not have a return type not even `void`.
+    - It is automatically called when you use `new ClassName()`.
+
+### Significance of Constructors in LLD
+- Constructors help us in creating valid object with usable state.
+- Constructors can enforce required fields (parametrized constructor).
+- We can inject dependencies via constructors thereby improving testability.
+- Constructors are used internally in Builder Pattern to create complex objects safely.
+
+### Types
+- Default Constructor or No-arg constructor.
+- Parametrized Constructor - takes arguments to initialize the object.
+-  
