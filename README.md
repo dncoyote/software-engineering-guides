@@ -1,4 +1,5 @@
 # **Software Engineering guides**
-
-## Low Level Design
-[Notes](Notes/LowLevelDesign.md)  
+#### Core Java
+[Notes](Notes/Core-Java.md)  
+#### Low-Level-Design
+[Notes](Notes/Low-Level-Design.md)  
