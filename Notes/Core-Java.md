@@ -303,6 +303,50 @@ Hello from JAR!
 - Metaspace (Java 8+)
     - Stores class metadata.
     - Managed separately from heap, but also GC’d.
+
+## Heap Memory
+- Runtime memory where all objects (created with new) are stored. Shared across all threads. Managed by Garbage Collector (GC).
+- It plays a vital role in Performance tuning, OutOfMemoryErrors, GC behavior.
+#### Characteristics
+- It stores
+    - Objects (`new Person()`)
+    - Instance Variables
+    - Arrays
+- Heap Memory is shared among all threads.
+- Memory management is automatic and performed by GC.
+- Heap Objects live until no references exists.
+- String literals → stored in a special area of heap called the string pool, but referenced from stack.
+- Heap Access slower.
+## Stack Memory
+- Per-thread memory that stores method calls, local variables, and references. Follows LIFO (Last-In-First-Out) order. Freed automatically when methods return.
+- It plays a vital role in Recursion depth, StackOverflowErrors, thread safety
+
+#### Characteristics
+- It stores
+    - Method call frames.
+    - Local primitive variables (`int x = 5`).
+    - References to objects in heap (`Person p = new Person();`).
+- Each thread has its own stack.
+- Stack variables are freed automatically when method exits.
+- Stack access is faster (LIFO).
+ 
+```java
+public class HeapStackDemo {
+    public static void main(String[] args) {
+        int x = 42;                      // primitive → stack
+        String name = new String("Ali"); // reference → stack, object → heap
+        Person p = new Person("Sara");   // reference → stack, Person → heap
+        p = null; // heap object now eligible for GC if no other references
+    }
+}
+
+class Person {
+    String name;
+    Person(String name) {
+        this.name = name;
+    }
+}
+```
 # **Language Basics**
 ## Variables
  - A variable is a container for storing data values.
