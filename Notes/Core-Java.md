@@ -347,6 +347,112 @@ class Person {
     }
 }
 ```
+## Class Loading
+- Class loading is the process by which the JVM locates, loads, and prepares classes (`.class` bytecode files) into memory so they can be used at runtime.
+- It is handled by ClassLoaders that are special Java objects that follow a parent delegation model.
+- A class is loaded once per ClassLoader. Two ClassLoaders can load the same `.class` into different copies.
+- Static blocks run only once per class (per ClassLoader).
+- Errors:
+    - `ClassNotFoundException` → when code explicitly tries to load a class (e.g., `Class.forName`) but file not found.
+    - `NoClassDefFoundError` → class was present during compilation but missing at runtime.
+#### Phases of Class Loading
+- Loading
+    - ClassLoader finds the `.class` file (from disk, JAR, network, etc.).
+    - Bytecode is read into memory as a Class object.
+- Linking
+    - Verification: Bytecode checked for correctness & security (no illegal casts, stack overflows).
+    - Preparation: Memory allocated for static variables (default values assigned).
+    - Resolution: Symbolic references (method/field names) replaced with direct references.
+- Initialization
+    - Static initializers and static blocks executed.
+    - Final values assigned to static variables.
+    - Happens lazily, i.e., only when class is first used.
+#### ClassLoader Hierarchy
+- Bootstrap ClassLoader
+    - Part of JVM (native).
+    - Loads core Java classes (`java.lang`, `java.util`, etc.) from `$JAVA_HOME/jre/lib`.
+    - Not a Java object, written in C/C++.
+- Extension (Platform) ClassLoader
+    - Loads classes from `jre/lib/ext` or `java.ext.dirs`.
+- Application (System) ClassLoader
+    - Loads classes from the classpath (`-cp`, `CLASSPATH`, project `bin/`, etc.).
+    - Loads user-defined classes.
+- Custom ClassLoaders
+    - You can extend ClassLoader to load classes from network, DB, or encrypted files.
+    - Used by frameworks.
+
+```java
+public class LoaderDemo {
+    static {
+        System.out.println("Class Loaded!");
+    }
+
+    public static void main(String[] args) throws Exception {
+        System.out.println("Main started");
+        Class.forName("LoaderDemo"); // triggers class loading
+    }
+}
+```
+```
+Main started
+Class Loaded!
+```
+
+## JIT Compilation
+- JIT (Just-In-Time) Compilation is a JVM feature where bytecode (platform-independent instructions in `.class` files) is compiled into native machine code while the program is running, so that the CPU can execute it directly.
+- It’s called “just-in-time” because the compilation happens at runtime, only for code that is actually executed.
+#### Characteristics
+##### Execution paths
+- Interpretation
+    - JVM reads bytecode line by line and executes.
+    - Slow, but no compilation overhead.
+- JIT Compilation
+    - Hot methods/loops are detected → compiled to native code.
+    - Future calls execute machine code directly (super fast).
+##### Importance
+- Portability + performance: Java is compiled once to bytecode (portable), then JIT-compiled to native code (fast).
+- Adaptive optimization: JVM identifies “hot code” (methods/loops executed many times) and optimizes them aggressively.
+- Makes Java almost as fast as C++ in long-running applications (servers, games, big data systems).
+##### JIT optimizations
+JIT is not a simple compiler — it does runtime optimizations based on actual program behavior:
+- Method inlining
+    - Small frequently called methods are “inlined” (code inserted directly, avoiding function call overhead).
+- Dead code elimination
+    - Removes unused or unreachable code paths.
+- Loop unrolling
+    - Expands loops for speed.
+- Escape analysis
+    - Detects if an object never “escapes” a method → allocates it on stack instead of heap (avoiding GC pressure).
+- Speculative optimizations
+    - If JIT notices a branch always takes one path, it optimizes for that. If assumption breaks → JVM deoptimizes and falls back. 
+##### Types 
+- C1 (Client Compiler) → fast compilation, basic optimizations. Good for short-lived apps (GUIs, tools).
+- C2 (Server Compiler) → slower compilation, aggressive optimizations. Good for long-running apps (servers).
+- Tiered Compilation (default) → combines C1 + C2
+
+## Java Process and Runtime 
+- A Java process is the operating system process created when you run a Java program (via the `java` command).
+- The Java Runtime (JRE) provides the environment inside which this process executes — JVM, core libraries, memory, GC, etc.
+- When `java HelloWorld` is executed : OS runs a process → process runs a JVM instance → JVM executes your bytecode.
+#### Lifecycle of a Java Process
+- Program Launch  
+    - When `java HelloWorld` is executed : OS runs a process → process runs a JVM instance → JVM executes your bytecode.
+- JVM Startup
+    - Initializes memory (heap, stack, metaspace).
+    - Loads `java.lang.Object`, `System`, and other core classes.
+    - Sets up bootstrap class loader, thread system, GC.
+- Class Loading
+    - `HelloWorld.class` is loaded via ClassLoader.
+    - Bytecode verified, prepared, initialized.
+- Execution
+    - JVM invokes `public static void main(String[] args)`.
+    - Bytecode executed (interpreted → JIT compiled).
+    - Program uses heap, stack, GC, threads, I/O.
+- Shutdown
+    - When `main()` finishes (or `System.exit()` is called).
+    - JVM runs shutdown hooks, finalizes threads, frees resources.
+    - OS destroys the process.
+
 # **Language Basics**
 ## Variables
  - A variable is a container for storing data values.
