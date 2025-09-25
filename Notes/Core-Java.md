@@ -452,7 +452,14 @@ JIT is not a simple compiler — it does runtime optimizations based on actual p
     - When `main()` finishes (or `System.exit()` is called).
     - JVM runs shutdown hooks, finalizes threads, frees resources.
     - OS destroys the process.
-
+## Native Methods
+- A native method is a method in Java whose implementation is written in another language (usually C or C++) and is executed via the Java Native Interface (JNI)
+- Java is platform-independent, but sometimes you need platform-dependent features.
+- Native methods bridge Java with low-level OS features or high-performance code.
+- Many parts of the JDK itself use native methods (e.g., `System.currentTimeMillis()`, file I/O, threading).
+- You declare it using the `native` keyword, but you don’t provide a method body.
+- JNI is the API that allows Java code to call C/C++ functions.
+- Native methods break Java’s “write once, run anywhere” because you need different `.dll`/`.so` for each platform.
 # **Language Basics**
 ## Variables
  - A variable is a container for storing data values.
