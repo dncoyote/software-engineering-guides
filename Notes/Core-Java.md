@@ -772,8 +772,19 @@ public class OverloadExample {
 }
 ```
 ## Strings
-- In Java, strings are objects that represent a sequence of characters. 
+- A String in Java is an immutable sequence of characters represented by the class `java.lang.String`. 
 - Unlike primitive types, strings are immutable, meaning their values cannot be changed once created.
+- Internally, since Java 9, a String stores characters as a byte array.
+- `==` &rarr; checks reference equality (same object).
+- `equals()` &rarr; checks value equality.
+- Strings are final, you cannot extend `String` class.
+```java
+String a = "Hello";
+String b = new String("Hello");
+
+System.out.println(a == b);       // false (different objects)
+System.out.println(a.equals(b));  // true (same content)
+```
 ### Declaring and Initializing Strings
 #### String Literal
 ```java
@@ -788,9 +799,14 @@ String name = new String("Java"); // Creates a new object in heap
 - Avoid this approach unless needed, as it creates a new object every time.
 
 ### String Immutability
-- Prevents modification of sensitive data.
+- Immutability means that once a String is created, the object cannot be changed.
+- Any operation like concatenation, substring, replace → creates a new String object.
+- This helps prevents modification of sensitive data.
 - Helps JVM optimize memory with the String Pool.
-- Since strings don’t change, they can be safely shared across threads.
+- Immutability ensures:
+    - Thread-safety (safe to share across threads).
+    - Security (e.g., passwords in memory don’t change accidentally).
+    - HashCode caching (faster lookups in HashMap/HashSet). 
 
 ```java
 public class StringExample {
@@ -802,5 +818,26 @@ public class StringExample {
     }
 }
 ```
+### String Pool | Intern Pool
+- String literals are stored in the String Pool inside the heap.
+- If you create `"Hello"` multiple times, all references point to the same pooled object.
+- You can force pool storage with `intern()`.
+```java
+String s1 = "Hello";
+String s2 = "Hello";
+System.out.println(s1 == s2); // true (same object from pool)
+
+
+String s3 = new String("Hello");
+System.out.println(s1 == s3); // false (different object)
+
+
+String s4 = new String("Hello").intern();
+System.out.println(s1 == s4); // true
+```
 ## Packages
+- A package in Java is a namespace that groups related classes, interfaces, and sub-packages.
+- File structure must match package name.
+- If you don’t specify a package, the class goes into the default package. This is not recommended for production because it cannot be imported by classes in named packages.
+- If two classes have the same name, Name collisions will occur. We must FQN in that case. eg.,`java.util.Date`, `java.sql.Date`.
 ## Native Methods
