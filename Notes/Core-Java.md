@@ -269,10 +269,6 @@ Hello from JAR!
 - Each thread gets its own stack.
 - Operates LIFO (Last-In, First-Out).
 - Automatic cleanup when method exits.
-##### Method Area (a.k.a. Metaspace in Java 8+)
-- Stores class metadata (class names, methods, fields, bytecode).
-- Also stores static variables.
-- Since Java 8 → stored in native memory, not heap.
 ##### Program Counter (PC) Register
 - Small per-thread register holding the address of the current instruction.
 ##### Native Method Stack
@@ -280,7 +276,7 @@ Hello from JAR!
 
 ## Garbage Collection
 - Garbage Collection (GC) is the JVM’s automatic process of reclaiming memory by removing objects that are no longer reachable by any live reference in a running program.
-- In simple words: it frees memory from unused objects so you don’t have to call free() like in C/C++.
+- In simple words: it frees memory from unused objects so you don’t have to call `free()` like in C/C++.
 - This prevents memory leaks, improve performance by eliminating `OutOfMemoryError`, GC pauses and help write scalable systems.
 - GC can be called using `System.gc()`: Only a suggestion. JVM may ignore it. 
 - `finalize()`: Deprecated in Java 9. Unpredictable; use try-with-resources or Cleaner.
