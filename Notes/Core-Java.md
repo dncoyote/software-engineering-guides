@@ -2,15 +2,16 @@
 ## Table of Contents
 
  1. [Internal Concepts](#Internal-Concepts)
-    1. [JRE, JVM, JDK](#JRE,-JVM,-JDK)
-    2. [JAR Files](#JRE,-JVM,-JDK)
-    3. Compilation and Bytecode
-    4. Memory Management
-    5. Class Loading
-    6. Garbage Collection
-    7. Heap and Stack
-    8. Just-In-Time Compilation (JIT)
-    9. Java Process and Runtime
+    - JRE, JVM, JDK
+    - JAR Files
+    - Compilation and Bytecode
+    - Memory Management
+    - Class Loading
+    - Garbage Collection
+    - Heap and Stack
+    - Just-In-Time Compilation (JIT)
+    - Java Process and Runtime
+    - Native Methods
  2. [Language Basics](#language-basics)
     - Variables and Data Types
     - Arrays
@@ -19,7 +20,6 @@
     - Methods and Functions
     - Strings
     - Packages
-    - Native Methods
  3. [Classes](#classes)
     - Class Basics
     - Attributes and Fields
@@ -843,4 +843,66 @@ System.out.println(s1 == s4); // true
 - File structure must match package name.
 - If you don’t specify a package, the class goes into the default package. This is not recommended for production because it cannot be imported by classes in named packages.
 - If two classes have the same name, Name collisions will occur. We must FQN in that case. eg.,`java.util.Date`, `java.sql.Date`.
-## Native Methods
+
+# Classes
+## Class 
+- A class in Java is a blueprint or template used to create objects.
+- It defines:
+    - State → variables/fields.
+    - Behavior → methods/functions.
+    - Identity → how objects of that class are recognized (via references).
+- An object is an instance of a class.
+- Classes are the building blocks of OOP in Java.
+    - They allow encapsulation (bundle data + behavior).
+    - Enable reuse via inheritance and polymorphism.
+
+#### Types of Classes
+- Concrete class → regular class (like Car).
+- Abstract class → cannot be instantiated, may contain abstract methods.
+- Final class → cannot be subclassed (e.g., String).
+- Nested class → declared inside another class.
+- Anonymous class → defined inline without a name (often with interfaces).
+## Fields
+- A variable declared inside a class, but outside any method, constructor, or block. That represents the state of the object.
+- Can be static (shared by class) or instance-specific.
+- Fields declared in class are part of object state and live on the heap.
+#### Types of Fields
+##### Instance Fields
+- Belong to each object instance.
+- Each object has its own copy of instance fields.
+```java
+class Person {
+    String name;  // instance field
+    int age;      // instance field
+}
+```
+##### Static Fields (class variables)
+- Belong to the class itself, shared across all objects.
+```java
+class Person {
+    static int population = 0;  // shared field
+}
+```
+##### Final Fields (constant or immutable) 
+- Assigned once, cannot be changed.
+```java
+class Circle {
+    final double PI = 3.14159;  // constant field
+}
+```
+##### Transient Fields
+- Skipped during serialization.
+```java
+class User {
+    transient String password; // won’t be written to file
+}
+```
+##### Volatile Fields
+- Used in multithreading to ensure visibility across threads.
+
+```java
+class Shared {
+    volatile boolean running = true;
+}
+```
+
