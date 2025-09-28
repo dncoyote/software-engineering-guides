@@ -1060,7 +1060,169 @@ class Student {
 #### Constructor Chaining
 - Constructor Chaining is the process of calling one constructor from another within the same class (using `this()`) or from the parent class (using `super()`).
 - It ensures that when an object is created, all relevant constructors are executed in sequence.
+- Instead of repeating initialization logic in multiple constructors, we centralize it. That matters a lot in enterprise apps, frameworks, and libraries.
 - `this()` → calls another constructor in the same class.
 - `super()` → calls a constructor of the parent class.
 - They both must be the first statement in the constructor.
 - A chain ends when it reaches a constructor that does not call another.
+##### Avoiding Code Duplication
+```java
+class User {
+    String username;
+    String email;
+    boolean isActive;
+
+    User(String username) {
+        this(username, "unknown@example.com"); // reuse
+    }
+
+    User(String username, String email) {
+        this(username, email, true); // reuse
+    }
+
+    User(String username, String email, boolean isActive) {
+        this.username = username;
+        this.email = email;
+        this.isActive = isActive;
+    }
+}
+```
+- Without chaining, you’d duplicate the assignment logic in each constructor. With chaining → all constructors reuse the most complete one. If tomorrow you change initialization logic, you change it in one place only.
+##### Ensuring Consistent Initialization
+```java
+class Order {
+    String id;
+    String status;
+
+    Order() {
+        this("000"); // call another constructor
+    }
+
+    Order(String id) {
+        this.id = id;
+        this.status = "NEW";  // centralized rule
+    }
+}
+```
+- No matter how you construct an Order, it always starts with "NEW". This prevents cases where some constructors forget to set status.
+##### Constructor Overloading (Telescoping Pattern)
+```java
+class HttpClient {
+    int timeout;
+    boolean sslEnabled;
+
+    HttpClient() {
+        this(30); // default 30 sec timeout
+    }
+
+    HttpClient(int timeout) {
+        this(timeout, true); // default SSL enabled
+    }
+
+    HttpClient(int timeout, boolean sslEnabled) {
+        this.timeout = timeout;
+        this.sslEnabled = sslEnabled;
+    }
+}
+```
+- In real-world APIs, classes often support different ways of construction.
+- Clients can choose simple or advanced constructors, but the final constructor holds the real logic.
+## Nested Classes
+- A nested class is a class defined inside another class.
+- Logical grouping → Example: Map.Entry inside Map.
+- Encapsulation → Implementation details hidden inside outer class.
+- Code organization → Cleaner structure, especially for helper classes.
+#### Types
+##### Static Nested Classes
+- Declared with the `static` keyword.
+- Behaves like a normal top-level class, but is namespaced inside the outer class.
+- Does not have access to outer class’s instance members directly.
+- Can access only static members of the outer class.
+```java
+class Outer {
+    static int data = 100;
+
+    static class StaticNested {
+        void show() {
+            System.out.println("Data: " + data); // ✅ can access static
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Outer.StaticNested obj = new Outer.StaticNested();
+        obj.show(); // Data: 100
+    }
+}
+```
+##### Inner Classes (non-static)
+- Each instance is tied to an outer class instance.
+- Can access all members (including private) of the outer class.
+```java
+class Outer {
+    private String msg = "Hello from Outer";
+
+    class Inner {
+        void print() {
+            System.out.println(msg); // ✅ can access private
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Outer outer = new Outer();
+        Outer.Inner inner = outer.new Inner(); // need outer object
+        inner.print(); // Hello from Outer
+    }
+}
+```
+##### Local Inner Classes
+- Defined inside a method, constructor, or block.
+- Scope is limited to that block.
+- Can access final or effectively final variables of enclosing method.
+```java
+class Outer {
+    void display() {
+        int num = 10; // effectively final
+
+        class LocalInner {
+            void print() {
+                System.out.println("Number: " + num);
+            }
+        }
+
+        LocalInner li = new LocalInner();
+        li.print();
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new Outer().display(); // Number: 10
+    }
+}
+```
+##### Anonymous Inner Classes
+- A class without a name.
+- Defined and instantiated in one step.
+- Commonly used to implement interfaces or extend classes on the fly.
+```java
+interface Greeting {
+    void sayHello();
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Greeting g = new Greeting() {
+            @Override
+            public void sayHello() {
+                System.out.println("Hello from anonymous inner class!");
+            }
+        };
+        g.sayHello();
+    }
+}
+```
+
