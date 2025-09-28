@@ -899,10 +899,168 @@ class User {
 ```
 ##### Volatile Fields
 - Used in multithreading to ensure visibility across threads.
-
+- Useful in concurrency but not a replacement for synchronization.
 ```java
 class Shared {
     volatile boolean running = true;
 }
 ```
+## Methods
+- A method in Java is a block of code that performs a task, defined inside a class. It represents the behavior of an object or class.
+- While fields define what an object has, methods define what an object does. 
+#### Types of Methods
+##### Instance Methods
+- Belong to objects.
+- Require object creation (`new`).
+ 
+```java
+class Car {
+    void drive() {
+        System.out.println("Car is driving");
+    }
+}
+Car c = new Car();
+c.drive();
+```
+##### Static Methods
+- Belong to the class itself.
+- Called with `ClassName.method()`.
 
+```java
+class MathUtil {
+    static int square(int x) {
+        return x * x;
+    }
+}
+System.out.println(MathUtil.square(5)); // 25
+```
+##### Abstract Methods
+- Declared in an abstract class/interface.
+- No body → must be implemented in subclass.
+```java
+abstract class Animal {
+    abstract void makeSound(); // no body
+}
+class Dog extends Animal {
+    void makeSound() { System.out.println("Bark"); }
+}
+```
+##### Final Methods
+- Cannot be overridden by subclasses.
+```java
+class Base {
+    final void greet() { System.out.println("Hello"); }
+}
+```
+##### Native Methods
+- Declared with `native`, implemented in C/C++ using JNI.
+```java
+public native void printMessage();
+```
+##### Synchronized Methods
+- Used in multithreading to lock objects.
+```java
+synchronized void increment() { counter++; }
+```
+#### Method Overloading vs Overriding
+##### Overloading (Compile-time Polymorphism)
+- Overloading (Compile-time Polymorphism).
+- Overloading cannot differ only by return type.
+```java
+class Calculator {
+    int add(int a, int b) { return a + b; }
+    double add(double a, double b) { return a + b; }
+}
+```
+##### Overriding (Runtime Polymorphism)
+- Subclass provides new implementation for a method defined in parent.
+- Static methods are not overridden → they are hidden (method hiding).
+```java
+class Animal {
+    void sound() { System.out.println("Some sound"); }
+}
+class Dog extends Animal {
+    @Override
+    void sound() { System.out.println("Bark"); }
+}
+```
+## Constructors
+- A constructor in Java is a special block of code used to initialize an object when it is created.
+- Constructor has the same name as the class, has no return type (not even `void`) and it is called automatically when you use `new`.
+- It ensures objects start in a valid state.
+- It supports overloading to provide different ways of creating objects.
+- Constructors help avoid writing repetitive initialization code in every method.
+- Constructors cannot be `abstract`, `final`, `static`, or `synchronized`. They can be `private` (used in Singleton pattern).
+#### Types of Constructors
+##### Default Constructors
+- If no constructor is defined, Java provides one automatically.
+- Initializes fields to default values (0, `false`, `null`).
+- If any constructor is defined then java will not generate the default constructor.
+```java
+class Car {
+    String brand;
+    int speed;
+}
+public class Main {
+    public static void main(String[] args) {
+        Car c = new Car(); // default constructor
+        System.out.println(c.brand); // null
+        System.out.println(c.speed); // 0
+    }
+}
+```
+##### Parameterized Constructor
+- Takes arguments to initialize fields.
+
+```java
+class Car {
+    String brand;
+    int speed;
+    Car(String b, int s) {
+        brand = b;
+        speed = s;
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        Car c = new Car("Toyota", 120);
+        System.out.println(c.brand + " " + c.speed); // Toyota 120
+    }
+}
+```
+#####  Constructor Overloading
+- Multiple constructors with different parameter lists.
+```java
+class Person {
+    String name;
+    int age;
+
+    Person() { name = "Unknown"; age = 0; }
+    Person(String n) { name = n; age = 0; }
+    Person(String n, int a) { name = n; age = a; }
+}
+
+// Usage
+Person p1 = new Person();
+Person p2 = new Person("Alice");
+Person p3 = new Person("Bob", 25);
+```
+##### Copy Constructor
+- Used to copy values from one object to another. 
+```java
+class Student {
+    String name;
+    int age;
+
+    Student(String n, int a) { name = n; age = a; }
+    Student(Student s) { name = s.name; age = s.age; } // copy constructor
+}
+```
+
+#### Constructor Chaining
+- Constructor Chaining is the process of calling one constructor from another within the same class (using `this()`) or from the parent class (using `super()`).
+- It ensures that when an object is created, all relevant constructors are executed in sequence.
+- `this()` → calls another constructor in the same class.
+- `super()` → calls a constructor of the parent class.
+- They both must be the first statement in the constructor.
+- A chain ends when it reaches a constructor that does not call another.
