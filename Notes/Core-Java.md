@@ -1225,4 +1225,148 @@ public class Main {
     }
 }
 ```
+## Static in classes
+- The `static` keyword in Java means “belongs to the class, not to any object.”
+- Usually, normal members → tied to each object instance. Whereas, normal members → tied to each object instance.
+- Static members are more memory efficient.
+- They are used to create utility methods (e.g., `Math.max()`) that can be called without creating objects. They are also used to create constants, configurations, counters etc.
+- Static blocks/methods cannot directly access instance variables.
+- Real-world usages
+    - Utility classes: `java.lang.Math`, `Collections` → all static methods.
+    - Constants: `public static final double PI = 3.14159;`
+    - Singletons: static instance + static `getInstance()` method.
+    - Counters: track how many objects created.
+    - Static factory methods: e.g., `LocalDate.now()`, `Integer.valueOf()`.
+#### Static Variables
+- Shared by all instances of the class.
+- Stored in the method area (not heap).
+- Good for constants or counters.
+```java
+class Counter {
+    static int count = 0;  // static field
 
+    Counter() {
+        count++;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Counter c1 = new Counter();
+        Counter c2 = new Counter();
+        System.out.println(Counter.count); // 2 (shared by all objects)
+    }
+}
+```
+#### Static Methods
+- Can be called using the class name (no object needed).
+- Cannot access non-static members (since no object exists).
+- Often used for utility/helper methods.
+```java
+class MathUtil {
+    static int square(int x) {
+        return x * x;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println(MathUtil.square(5)); // 25
+    }
+}
+```
+#### Static Blocks
+- Run once when the class is loaded.
+- Used for class-level initialization (e.g., loading drivers, static config).
+```java
+class Config {
+    static String appName;
+
+    static {
+        appName = "MyApp"; // static block runs once
+        System.out.println("Static block executed");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println(Config.appName);
+    }
+}
+```
+```java
+class BankAccount {
+    static String bankName = "ABC Bank";   // static variable (shared)
+    String accountHolder;                  // instance variable
+
+    // Constructor
+    BankAccount(String holder) {
+        accountHolder = holder;
+    }
+
+    // Static method
+    static void changeBank(String name) {
+        bankName = name;
+    }
+
+    // Instance method
+    void display() {
+        System.out.println(accountHolder + " - " + bankName);
+    }
+
+    // Static block
+    static {
+        System.out.println("BankAccount class loaded");
+    }
+
+    // Static nested class
+    static class Helper {
+        void help() {
+            System.out.println("Helper for " + bankName);
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        BankAccount a1 = new BankAccount("Alice");
+        BankAccount a2 = new BankAccount("Bob");
+
+        a1.display(); // Alice - ABC Bank
+        a2.display(); // Bob - ABC Bank
+
+        BankAccount.changeBank("XYZ Bank"); // change static variable
+        a1.display(); // Alice - XYZ Bank
+
+        BankAccount.Helper h = new BankAccount.Helper();
+        h.help(); // Helper for XYZ Bank
+    }
+}
+```
+## Class modifiers
+#### Access Modifiers
+- They control visibility across packages.
+- `public` - Class is visible to all packages and file name must match the class name.
+- default (package-private) - Class is visible only within the same package.
+- For top-level classes, only `public` and default are allowed. `private` and `protected` are not allowed.
+#### Non-Access Modifiers
+- `final`
+    - Class cannot be subclassed (no inheritance).
+    - Used for security & immutability (e.g., `java.lang.String`).
+- `abstract`
+    - Class cannot be instantiated (no `new`).
+    - May contain abstract methods (without body).
+    - Must be extended by a subclass.
+- `strictfp`
+    - Used when you need platform-independent floating-point results.
+- `static`
+    - Allowed only for nested classes (not top-level classes).
+    - Makes the nested class not depend on an instance of the outer class.
+#### Invalid modifiers
+- `abstract final` → makes no sense (abstract = meant to be subclassed, final = can’t be subclassed).
+- `private` / `protected` top-level classes.
+- `static` top-level class
+- Multiple `public` classes in one file (only one per file, must match filename).
+private / protected top-level classes ❌.
+static top-level class ❌.
+Multiple public classes in one file ❌ (only one per file, must match filename).
