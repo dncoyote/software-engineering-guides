@@ -1367,6 +1367,103 @@ public class Main {
 - `private` / `protected` top-level classes.
 - `static` top-level class
 - Multiple `public` classes in one file (only one per file, must match filename).
-private / protected top-level classes ❌.
-static top-level class ❌.
-Multiple public classes in one file ❌ (only one per file, must match filename).
+
+## Wrapper Classes
+- A wrapper class in Java is a class that wraps a primitive data type into an object.
+    - `int` → `Integer`
+    - `double` → `Double`
+    - `char` → `Character`
+boolean → Boolean
+- Each primitive has a corresponding wrapper in `java.lang` package.
+- Wrappers convert primitives to object, which can then be used in Collections/Generics.
+- Objects can be `null`, primitives cannot.
+- Wrappers provide useful constants & methods like `Integer.parseInt(""123)`.
+- Wrapper classes are needed for collections, generics, nullability, and APIs.
+#### Autoboxing and Unboxing
+- Java automatically converts between primitives and wrappers.
+- Autoboxing → primitive → wrapper object.
+- Unboxing → wrapper object → primitive.
+```java
+public class WrapperDemo {
+    public static void main(String[] args) {
+        // Autoboxing
+        int a = 10;
+        Integer obj = a;  // int → Integer
+
+        // Unboxing
+        Integer b = 20;
+        int val = b;      // Integer → int
+
+        System.out.println(obj); // 10
+        System.out.println(val); // 20
+    }
+}
+```
+## Object Class
+- Every class in Java (directly or indirectly) extends `java.lang.Object`.
+- This makes `Object` the root of the class hierarchy.
+- `Object` class provides common methods used by all objects.
+    - `toString()` - Returns a string representation of the object.
+    - `equals(Object obj)` - Checks if two objects are logically equal. 
+    - `hashCode()` - Returns an integer hash value for the object.
+    - `getClass()` - Returns the runtime Class object (reflection).
+    - `clone()` - Creates a shallow copy.
+- If you don’t explicitly extend another class, your class automatically extends `Object`.
+
+## `instanceof` keyword
+- The `instanceof` keyword is used to test whether an object is an instance of a specific class or subclass (or implements an interface).
+- It returns a boolean, if the reference is `null`, `instanceof` always returns `false`.
+```
+object instanceof ClassName
+```
+```java
+class Animal {}
+class Dog extends Animal {}
+
+public class Main {
+    public static void main(String[] args) {
+        Animal a = new Dog();
+
+        System.out.println(a instanceof Animal); // true
+        System.out.println(a instanceof Dog);    // true
+        System.out.println(a instanceof Object); // true
+    }
+}
+```
+- Since Java 14+, java introduced pattern matching to make `instanceof`+ casting easier. This is cleaner and avoids redundant casting.
+
+```java
+// before
+if (obj instanceof String) {
+    String s = (String) obj; // explicit cast
+    System.out.println(s.toUpperCase());
+}
+
+// after
+if (obj instanceof String s) { // pattern matching
+    System.out.println(s.toUpperCase());
+}
+```
+
+```java
+class Shape {}
+class Circle extends Shape {}
+class Rectangle extends Shape {}
+
+public class Main {
+    public static void printType(Shape s) {
+        if (s instanceof Circle) {
+            System.out.println("It’s a Circle");
+        } else if (s instanceof Rectangle) {
+            System.out.println("It’s a Rectangle");
+        } else {
+            System.out.println("Unknown shape");
+        }
+    }
+
+    public static void main(String[] args) {
+        printType(new Circle());   // It’s a Circle
+        printType(new Rectangle()); // It’s a Rectangle
+    }
+}
+```
