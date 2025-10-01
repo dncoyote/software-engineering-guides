@@ -1467,3 +1467,137 @@ public class Main {
     }
 }
 ```
+
+## Inheritance
+- Inheritance is the mechanism where one class (child/subclass/derived class) can acquire the properties and behaviors (fields and methods) of another class (parent/superclass/base class).
+- Code reusability → reuse fields & methods instead of duplicating.
+- Polymorphism → allows one reference type to point to multiple object types.
+- Extensibility → build more specific classes from generic ones.
+- Standardization → all subclasses inherit common behavior.
+- `final` class cannot be inherited, `final` method cannot be overridden.
+
+```java
+class Animal {
+    Animal() {
+        System.out.println("Animal created");
+    }
+}
+
+class Dog extends Animal {
+    Dog() {
+        super(); // calls Animal()
+        System.out.println("Dog created");
+    }
+}
+```
+
+```java
+class Vehicle {
+    String brand = "Generic";
+
+    void start() {
+        System.out.println("Vehicle starting...");
+    }
+}
+
+class Car extends Vehicle {
+    int wheels = 4;
+
+    @Override
+    void start() {
+        System.out.println(brand + " car starting with " + wheels + " wheels");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Vehicle v = new Car();  // polymorphism
+        v.start(); // Car’s overridden method
+    }
+}
+```
+#### Types of Inheritance
+##### Single Inheritance
+```java
+class Parent {}
+class Child extends Parent {}
+```
+##### Multilevel Inheritance
+```java
+class Grandparent {}
+class Parent extends Grandparent {}
+class Child extends Parent {}
+```
+##### Hierarchical Inheritance
+```java
+class Parent {}
+class Child1 extends Parent {}
+class Child2 extends Parent {}
+```
+##### Multiple Inheritance
+- Unlike C++ or Python, Java does not allow multiple inheritance with classes (to avoid ambiguity, e.g., diamond problem). Instead, it uses interfaces.
+```java
+interface A {}
+interface B {}
+class C implements A, B {}
+```
+## Subclasses
+- Subclass (child/derived class) is a class that inherits fields and methods from another class, called the superclass (parent/base class).
+- They will inherit all accessible fields and methods from the parent class and can add new fields/methods.
+- They can override methods to change behavior.
+- They can call parent’s constructor/methods using `super`.
+- A subclass can itself be a superclass of another class (multi-level inheritance).
+```java
+class Animal {
+    void eat() {
+        System.out.println("Animal is eating");
+    }
+}
+
+class Dog extends Animal {
+    void bark() {
+        System.out.println("Dog is barking");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Dog d = new Dog();
+        d.eat();  // inherited from Animal
+        d.bark(); // Dog’s own method
+    }
+}
+//OP
+Animal is eating
+Dog is barking
+```
+##### Overriding Methods
+```java
+class Animal {
+    void sound() { System.out.println("Some sound"); }
+}
+
+class Dog extends Animal {
+    @Override
+    void sound() { System.out.println("Bark"); }
+}
+```
+##### Constructors in Subclasses
+```java
+class Animal {
+    Animal() { System.out.println("Animal created"); }
+}
+
+class Dog extends Animal {
+    Dog() { System.out.println("Dog created"); }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Dog d = new Dog();
+    }
+}
+//OP
+Animal created
+Dog created
+```
