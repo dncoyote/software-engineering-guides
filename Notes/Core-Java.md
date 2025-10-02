@@ -1601,3 +1601,155 @@ public class Main {
 Animal created
 Dog created
 ```
+
+#### Accessing Superclass members
+- Superclass members can be accessed using `super`.
+- `super` must be the first line in a constructor.
+- `super` cannot be used in static context.
+- Subclass cannot access private members of the superclass (only public/protected/package-private).
+##### Accessing Superclass Fields
+- `super.fieldName`
+
+```java
+class Animal {
+    String type = "Animal";
+}
+
+class Dog extends Animal {
+    String type = "Dog";
+
+    void printType() {
+        System.out.println(type);        // Dog
+        System.out.println(super.type);  // Animal
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new Dog().printType();
+    }
+}
+```
+##### Accessing Superclass Methods
+- `super.methodName()`
+
+```java
+class Animal {
+    void sound() { System.out.println("Some sound"); }
+}
+
+class Dog extends Animal {
+    @Override
+    void sound() {
+        super.sound(); // calls Animal’s sound()
+        System.out.println("Bark");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new Dog().sound();
+    }
+}
+
+//OP
+Some sound
+Bark
+```
+##### Accessing Superclass Constructors
+- `super()`
+
+```java
+class Animal {
+    Animal(String name) {
+        System.out.println("Animal created: " + name);
+    }
+}
+
+class Dog extends Animal {
+    Dog() {
+        super("Dog"); // explicitly call parent constructor
+        System.out.println("Dog created");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new Dog();
+    }
+}
+
+//OP
+Animal created: Dog
+Dog created
+```
+
+## Method Overriding
+- Method overriding happens when a subclass provides a new implementation for a method that is already defined in its superclass.
+- It allows the subclass to customize or completely change behavior while keeping the same method signature.
+- It should have the same methods name, parameter list and return type.
+- It should not reduce visibility.
+    - If parent method is `public`, then child method must be `public`.
+    - If parent method is `protected` then child method can be `protected` or `public`.
+- It should not throw new or broader checked exceptions than parent method.
+```java
+class Parent {
+    void read() throws IOException {}
+}
+
+class Child extends Parent {
+    @Override
+    void read() throws FileNotFoundException {} // ✅ allowed (narrower)
+}
+```
+```java
+class Child2 extends Parent {
+    @Override
+    void read() throws Exception {} // ❌ broader checked exception not allowed
+}
+```
+- Final methods, static methods, private methods and constructors cannot be overridden.
+
+```java
+class Animal {
+    void sound() {
+        System.out.println("Some generic sound");
+    }
+}
+
+class Dog extends Animal {
+    @Override
+    void sound() {
+        System.out.println("Bark");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Animal a = new Dog();
+        a.sound(); // Bark (runtime polymorphism)
+    }
+}
+```
+- Even though reference type is `Animal`, the actual object (`Dog`) determines which method is called.
+- This is runtime polymorphism (dynamic dispatch).
+- Use `@Override` Annotation for clarity, it gives a compile-time error if the method doesn’t correctly override. 
+```java
+class Cat extends Animal {
+    @Override
+    void sound() { // ✅ correct override
+        System.out.println("Meow");
+    }
+}
+```
+#### Method Overriding vs Runtime Polymorphism vs Dynamic Method dispatch
+##### Method Overriding (what you write in code) 
+- Method overriding happens when a subclass provides a new implementation for a method that is already defined in its superclass.
+##### Runtime Polymorphism (what you achieve)
+- The ability of a superclass reference to point to objects of different subclasses, and the correct method implementation is chosen at runtime.
+- This is achieved through method overriding.
+##### Dynamic Method Dispatch (how JVM actually does this) 
+- The mechanism inside the JVM that makes runtime polymorphism possible.
+- When an overridden method is called through a superclass reference, Java uses dynamic method dispatch to determine which version to execute.
+- The method call is resolved dynamically at runtime, not statically at compile time.
+
