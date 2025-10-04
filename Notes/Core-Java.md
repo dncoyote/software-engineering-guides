@@ -39,8 +39,8 @@
     - Method Overriding
     - Super Keyword
  5. [Interfaces](#Interfaces)
-    - Basics
-    - Creating Interfaces
+    - Interfaces
+    - Abstract Classes
     - Implementing and Extending Interfaces 
     - Multiple Inheritance with Interfaces
     - Static Methods in Interfaces
@@ -1753,3 +1753,152 @@ class Cat extends Animal {
 - When an overridden method is called through a superclass reference, Java uses dynamic method dispatch to determine which version to execute.
 - The method call is resolved dynamically at runtime, not statically at compile time.
 
+## Interface
+- An interface in Java is a contract that defines a set of abstract methods (and constants) that a class must implement.
+- Interface tells you what to do (Abstraction) and the class implementing the interface tells you how to do it.
+- They can help achieve Multiple Inheritance.
+- Core of Java frameworks (e.g., `List`, `Map`, `Runnable`).
+- `List` is an interface and `ArrayList`, `LinkedList`, `Vector` are all its implementations.
+#### Characteristics
+- All methods are `public` & `abstract` by default (before Java 8).
+- Interfaces can have `default`, `static`, `private` methods (after Java 8).
+- Variables are `public`, `static`, and `final` by default.
+- A class must use `implements` to provide method definitions.
+- A class can implement multiple interfaces (solves multiple inheritance problem).
+- An interface can extend another interface.
+```java
+// ===============================
+// Define first interface (before Java 8 style)
+// ===============================
+interface Animal {
+    // 1. Methods are public & abstract by default
+    void sound();    // abstract method
+    void move();
+
+    // 2. Variables are public, static, final by default
+    int LEGS = 4;   // equivalent to: public static final int LEGS = 4;
+
+    // 3. Default method (Java 8+)
+    default void sleep() {
+        System.out.println("Animal is sleeping...");
+    }
+
+    // 4. Static method (Java 8+)
+    static void info() {
+        System.out.println("Animals are living beings");
+    }
+
+    // 5. Private helper method (Java 9+)
+    private void log(String msg) {
+        System.out.println("LOG: " + msg);
+    }
+
+    // Default method using private helper
+    default void eat() {
+        log("Animal is eating...");
+        System.out.println("Animal eats food");
+    }
+}
+
+// ===============================
+// Define second interface
+// ===============================
+interface Pet {
+    void play(); // abstract by default
+
+    default void ownerInfo() {
+        System.out.println("This pet belongs to a caring owner.");
+    }
+}
+
+// ===============================
+// Class implementing multiple interfaces
+// ===============================
+class Dog implements Animal, Pet {
+
+    // Implement abstract methods from Animal
+    public void sound() {
+        System.out.println("Dog barks: Woof Woof!");
+    }
+
+    public void move() {
+        System.out.println("Dog runs on " + LEGS + " legs.");
+    }
+
+    // Implement abstract method from Pet
+    public void play() {
+        System.out.println("Dog is playing fetch.");
+    }
+}
+
+// ===============================
+// Main class to run the demo
+// ===============================
+public class Main {
+    public static void main(String[] args) {
+        Dog d = new Dog();
+
+        // Abstract methods implemented in Dog
+        d.sound();
+        d.move();
+        d.play();
+
+        // Using default methods from interfaces
+        d.sleep();     // from Animal
+        d.eat();       // from Animal
+        d.ownerInfo(); // from Pet
+
+        // Using static method from interface
+        Animal.info();
+
+        // Accessing interface variable
+        System.out.println("Dogs have " + Animal.LEGS + " legs.");
+    }
+}
+```
+#### `default` methods
+- A `default` method in an interface is a method with a body (implementation) that classes implementing the interface automatically inherit.
+- If a class implements two interfaces that have the same `default` method, you must resolve the conflict by overriding it.
+- `default` method  doesn’t exist in abstract classes — as they just have normal methods with bodies, which serve the same purpose.
+## Abstract Classes
+- An abstract class is a class that cannot be instantiated directly, but can be extended by other classes. It serves as a blueprint for other classes to derive from and provides common functionality that can be inherited by its subclasses.
+- An abstract class may contain abstract methods (methods without implementation).
+- An abstract class may also contain concrete methods (methods with implementation).
+- Abstract class must be extended by a subclass which provides implementations for abstract methods.
+- They sit somewhere between normal classes and interfaces.
+
+#### Characteristics
+- Declared using `abstract` keyword.
+- Can have abstract methods (no body) and concrete methods.
+- A subclass must implement all abstract methods, or itself be declared abstract.
+- Can have constructors (used when subclass is created).
+- Can have fields, static methods, final methods.
+- Can extend another class (abstract or not).
+- A class can only extend one abstract class (single inheritance rule).
+
+```java
+abstract class Animal {
+    // Abstract method (no body)
+    abstract void sound();
+
+    // Concrete method
+    void sleep() {
+        System.out.println("Sleeping...");
+    }
+}
+
+class Dog extends Animal {
+    @Override
+    void sound() {
+        System.out.println("Bark");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Animal a = new Dog(); // Polymorphism
+        a.sound();  // Bark
+        a.sleep();  // Sleeping...
+    }
+}
+```
