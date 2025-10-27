@@ -1978,14 +1978,84 @@ for (String name : new ArrayList<String>()) {
 ```
 ## List
 - The `List` interface (in `java.util`) represents an ordered collection that allows duplicates and provides positional access to elements (via an index).
+- Order - Maintains insertion order.
+- Duplicates - Allowed.
+- Nulls - Allowed (depends)
+- Thread-safety - not thread safe.
+- Primary purpose - Indexed, ordered sequence of elements
 - Implementations of `List` interfaces
     - `ArrayList`
-    - `LinkedList`
+    - `LinkedList` (LinkedList in Java implements both the List and Deque interfaces)
     - `CopyOnWriteArrayList`
     - `Vector`(Legacy)
+### ArrayList
+- `ArrayList` is a resizable, ordered, index-based list that implements the `List` interface
+- It’s the go-to data structure when you want fast random access, ordered elements, and dynamic resizing
+- Order - Maintains insertion order.
+- Duplicates - Allowed.
+- Nulls - Allowed 
+- Thread-safety - not thread safe (use `Collections.synchronizedList()` if needed).
+- Underlying Structure - Dynamic Array
+- Index-based Access - Fast O(1)
+- Insertion/Deletion - Slower in middle O(n)
+#### Internal Working
+-  `ArrayList` is a dynamic array-based data structure — it behaves like a normal Java array but can grow and shrink automatically as elements are added or removed.
+- Under the hood, it uses an array (`Object[] elementData`) to store elements.
+- When full, it creates a bigger array, copies elements, and replaces the old one.
+- ArrayList is backed by a dynamic array - A dynamic array is just like a normal Java array, except it can automatically grow (or sometimes shrink) when needed.
 
+```java
+int[] arr = new int[3];
+arr[0] = 10;
+arr[1] = 20;
+arr[2] = 30;
+// arr[3] = 40; ❌  -> ArrayIndexOutOfBoundsException
+
+List<Integer> list = new ArrayList<>();
+list.add(10);
+list.add(20);
+list.add(30);
+list.add(40);
+//When the internal array gets full →
+//Java creates a new array (1.5x bigger) → copies old data into it → continues normally.
+```
+#### Iterations
+```java
+for (int i = 0; i < fruits.size(); i++) {
+    System.out.println(fruits.get(i));
+}
+```
+```java
+for (String fruit : fruits) {
+    System.out.println(fruit);
+}
+```
+```java
+Iterator<String> it = fruits.iterator();
+while (it.hasNext()) {
+    System.out.println(it.next());
+}
+```
+```java
+fruits.forEach(System.out::println);
+```
+### LinkedList
+- The `LinkedList` class in Java is a doubly linked list implementation of the `List` and `Deque` interfaces.
+- It’s one of the most flexible data structures in Java as it works like a List, Queue, Deque, Stack - can be ordered as FIFO and LIFO.
+- Order - Maintains insertion order.
+- Duplicates - Allowed.
+- Nulls - Allowed 
+- Thread-safety - not thread safe 
+- Underlying Structure - Doubly Linked List
+- Random Access - Slower O(n)
+- Insertion/Deletion at ends - Faster O(1)
 ## Set
 - The `Set` interface (in `java.util`) represents a collection of unique elements — it does not allow duplicates and generally has no defined ordering (depending on implementation).
+- Order - Unordered (depends)
+- Duplicates - Not allowed
+- Nulls - One allowed (in HashSet) 
+- Thread-safety - not thread safe.
+- Primary purpose - Stores unique elements
 - Implementations of `Set` interfaces
     - `HashSet`
     - `LinkedHashSet`
@@ -1993,3 +2063,51 @@ for (String name : new ArrayList<String>()) {
     - `EnumSet`
     - `CopyOnWriteArraySet`
 
+## Map
+- The `Map<K,V>` interface (in `java.util`) represents a collection that maps unique keys to values. 
+- It is not a subtype of `Collection` interface.
+- Order - Depends
+- Duplicates - Keys cannot be duplicate, value can be duplicate.
+- Nulls - One null key, many null values
+- Thread-safety - not thread safe.
+- Primary purpose - Key-value map sorted by key.
+- Implementations of `Map` Interfaces
+    - `HashMap`
+    - `LinkedHashMap`
+    - `TreeMap`
+    - `WeakHashMap`
+    - `IdentityHashMap`
+    - `ConcurrentHashMap`
+    - `Hashtable` (legacy)
+- Iterating over Entries
+```java
+for (Map.Entry<Integer, String> entry : map.entrySet()) {
+    System.out.println(entry.getKey() + " => " + entry.getValue());
+}
+```
+
+## Queue
+- The `Queue` interface (in `java.util`) represents a collection designed to hold elements prior to processing — typically following a FIFO (First-In-First-Out) order.
+- Order - FIFO
+- Duplicates - Allowed
+- Nulls - not allowed (depends) 
+- Thread-safety - not thread safe
+- Primary purpose - Holds elements for processing in order
+- Implementations of `Queue` Interfaces
+    - `PriorityQueue`
+    - `ConcurrentLinkedQueue`
+    - `BlockingQueue` (concurrent)
+        - `ArrayBlockingQueue`
+        - `LinkedBlockingQueue`
+        - `PriorityBlockingQueue`
+## Deque
+- The `Deque` interface (in `java.util`) represents a double-ended queue, allowing insertion and removal of elements from both ends — front and rear - they follow FIFO and LIFO order.
+- Order - FIFO/LIFO
+- Duplicates - Allowed
+- Nulls - not allowed (depends)
+- Thread-safety - not thread safe
+- Primary purpose - Double-ended queue (acts as queue + stack) 
+- Implementations of `Deque`Interfaces
+    - `ArrayDeque`
+    - `LinkedList` (LinkedList in Java implements both the List and Deque interfaces)
+    - `LinkedBlockingDeque` (concurrent)
