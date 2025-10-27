@@ -1902,3 +1902,94 @@ public class Main {
     }
 }
 ```
+
+# Collections Framework 
+- The Collections Framework (JCF) is a unified architecture for storing, manipulating, and transferring groups of objects.
+- It includes Interfaces (e.g., `List`, `Set`, `Map`, `Queue`)
+- And also include Implementations (e.g., `ArrayList`, `HashSet`, `HashMap`)
+- Algorithms (e.g., sorting, searching — in Collections class)
+
+```
+
+java.lang.Iterable
+        │
+        └── java.util.Collection
+                 │
+     ┌───────────┼─────────────┬────────────┐
+     │           │             │            │
+   List         Set          Queue       Deque
+     │           │             │            │
+     │           │             │            │
+     │           │             │            │
+     │           │             │            │
+     │           │             │            │
+  ┌──┴──┐    ┌───┴───┐     ┌───┴───┐    ┌───┴────┐
+  │      │    │       │     │       │    │        │
+ArrayList LinkedList HashSet SortedSet PriorityQueue ArrayDeque
+Vector   CopyOnWriteArrayList LinkedHashSet TreeSet  ConcurrentLinkedQueue
+Stack    (legacy)   EnumSet   CopyOnWriteArraySet   LinkedBlockingQueue
+                     (specialized)   (thread-safe)  ArrayBlockingQueue
+```
+## Collection Interfaces
+- Collection Interfaces
+    - List
+    - Set
+    - Map
+    - Queue
+    - Deque
+- In addition to these interfaces, all Collection implementations inherit both `Iterable` and `Collection` interfaces — either directly or indirectly.
+
+### Iterable
+- `Iterable<T>` is the superinterface of the entire Collection hierarchy.
+- This means that every class implementing `Collection` — and by extension, all lists, sets, queues — also implement `Iterable`.
+```java
+for (String name : new ArrayList<String>()) {
+    // works automatically because ArrayList implements Iterable
+}
+```
+- `Iterable<T>` interface (in `java.lang`) represents a sequence of elements that can be iterated one by one.
+- This is the foundation for every class that supports iteration using the `for-each` loop (enhanced for loop) or iterators.
+- `Iterator` is another interface (`java.util`) that provides a cursor-like mechanism to iterate (traverse) through elements of a collection one by one. It is returned by the `iterator()` method of any class that implements `Iterable`.
+- So `Iterable` return an `Iterator` to traverse the collection sequentially.
+
+### Collection 
+- The Collection interface (in `java.util`) represents a group of individual objects — known as elements.
+- It defines the common methods that all collections (except `Map`) share.
+- So every `List`, `Set`, and `Queue` class inherits all the `Collection` methods.
+- Only `Map` stands outside — it’s not a subtype of `Collection`.
+
+```java
+// Core methods
+    int size();
+    boolean isEmpty();
+    boolean contains(Object o);
+    Iterator<E> iterator();
+    Object[] toArray();
+    <T> T[] toArray(T[] a);
+    boolean add(E e);
+    boolean remove(Object o);
+    boolean containsAll(Collection<?> c);
+    boolean addAll(Collection<? extends E> c);
+    boolean removeAll(Collection<?> c);
+    boolean retainAll(Collection<?> c);
+    void clear();
+    boolean equals(Object o);
+    int hashCode();
+```
+## List
+- The `List` interface (in `java.util`) represents an ordered collection that allows duplicates and provides positional access to elements (via an index).
+- Implementations of `List` interfaces
+    - `ArrayList`
+    - `LinkedList`
+    - `CopyOnWriteArrayList`
+    - `Vector`(Legacy)
+
+## Set
+- The `Set` interface (in `java.util`) represents a collection of unique elements — it does not allow duplicates and generally has no defined ordering (depending on implementation).
+- Implementations of `Set` interfaces
+    - `HashSet`
+    - `LinkedHashSet`
+    - `TreeSet`
+    - `EnumSet`
+    - `CopyOnWriteArraySet`
+
