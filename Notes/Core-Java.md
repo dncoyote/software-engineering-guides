@@ -2041,6 +2041,7 @@ fruits.forEach(System.out::println);
 ```
 ### LinkedList
 - The `LinkedList` class in Java is a doubly linked list implementation of the `List` and `Deque` interfaces.
+- LinkedList stores each element in a separate node, linked together using next and previous pointers.
 - It’s one of the most flexible data structures in Java as it works like a List, Queue, Deque, Stack - can be ordered as FIFO and LIFO.
 - Order - Maintains insertion order.
 - Duplicates - Allowed.
@@ -2049,6 +2050,60 @@ fruits.forEach(System.out::println);
 - Underlying Structure - Doubly Linked List
 - Random Access - Slower O(n)
 - Insertion/Deletion at ends - Faster O(1)
+
+#### Internal Working
+- `LinkedList` internally manages a chain of Node objects connected by `next` and `prev` pointers.
+This design enables constant-time insertion and removal at the ends, but makes random access slow (O(n)) and memory usage higher than `ArrayList`.
+##### Underlying Structure
+- `LinkedList` is implemented as a Doubly Linked List.
+- Each element is wrapped inside a Node object
+- The list maintains two pointers:
+    - `first` → points to the head node
+    - `last` → points to the tail node
+```java
+private static class Node<E> {
+    E item;
+    Node<E> next;
+    Node<E> prev;
+
+    Node(Node<E> prev, E element, Node<E> next) {
+        this.item = element;
+        this.next = next;
+        this.prev = prev;
+    }
+}
+```
+```java
+null <- [10] <-> [20] <-> [30] -> null
+```
+##### How elements are stored
+- Each node stores:
+    - the data (item),
+    - a reference to the next node,
+    - a reference to the previous node.
+- Nodes are stored non-contiguously in memory (scattered across the heap).
+##### Adding elements
+- When you call add(E e):
+    - A new node is created.
+    - Its `prev` points to the current `last` node.
+    - The old `last.next` points to this new node.
+    - The last `pointer` is updated to the new node.
+- Insertion at head or tail is O(1) (only pointer updates).
+- Insertion at a specific index is O(n) (traversal required).
+##### Removing elements
+- Find the node (traverse from head or tail).
+- Update its neighbors, node becomes unlinked and garbage-collected.
+```java
+prev.next = next;
+next.prev = prev;
+```
+- Removal at ends → O(1)
+- Removal in middle → O(n)
+##### Accessing elements
+- `get(index)` must traverse nodes sequentially:
+    - From head if `index < size/2`
+    - From tail if `index >= size/2`
+- Hence random access = O(n) (unlike ArrayList’s O(1)).
 ## Set
 - The `Set` interface (in `java.util`) represents a collection of unique elements — it does not allow duplicates and generally has no defined ordering (depending on implementation).
 - Order - Unordered (depends)
