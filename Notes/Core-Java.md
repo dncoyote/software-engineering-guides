@@ -2104,6 +2104,18 @@ next.prev = prev;
     - From head if `index < size/2`
     - From tail if `index >= size/2`
 - Hence random access = O(n) (unlike ArrayList’s O(1)).
+### CopyOnWriteArrayList
+- `CopyOnWriteArrayList` is a thread-safe implementation of the `List` interface — found in the `java.util.concurrent` package.
+- It’s a replacement for synchronized ArrayList or Vector, optimized for Frequent reads, and Rare writes.
+- Whenever the list is modified (add/remove/set), it creates a new internal copy of the array. That is why its called **Copy-On-Write** - Copy the array on each write operation. This ensures that reads never get blocked and writers never interfere with readers.
+- In CopyOnWriteArrayList: a new array is created and swapped each time you write. Therefore there is no `ConcurrentModificationException`
+- Order - Maintains insertion order.
+- Duplicates - Allowed.
+- Nulls - Allowed 
+- Thread-safety - yes 
+- Underlying Structure - Dynamic Array 
+- Index-based Access - Fast O(1)
+- Insertion/Deletion - Slower in middle O(n)
 ## Set
 - The `Set` interface (in `java.util`) represents a collection of unique elements — it does not allow duplicates and generally has no defined ordering (depending on implementation).
 - Order - Unordered (depends)
