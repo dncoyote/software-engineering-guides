@@ -2116,6 +2116,7 @@ next.prev = prev;
 - Underlying Structure - Dynamic Array 
 - Index-based Access - Fast O(1)
 - Insertion/Deletion - Slower in middle O(n)
+
 ## Set
 - The `Set` interface (in `java.util`) represents a collection of unique elements — it does not allow duplicates and generally has no defined ordering (depending on implementation).
 - Order - Unordered (depends)
@@ -2129,7 +2130,7 @@ next.prev = prev;
     - `TreeSet`
     - `EnumSet`
     - `CopyOnWriteArraySet`
-
+ 
 ## Map
 - The `Map<K,V>` interface (in `java.util`) represents a collection that maps unique keys to values. 
 - It is not a subtype of `Collection` interface.
