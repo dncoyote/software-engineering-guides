@@ -137,3 +137,106 @@ java HelloWorld
     - Return type of method.
 - `String[] arg`
     - Stores java command line arguments. It is used to pass command-line arguments to a java program when executed from the command line.
+
+### What is Java String Pool?
+- String Pool is a special area in the Java Heap memory where Java stores unique string literals.  
+- So when you create a new string literal in your code like `String s = "Hello";`, 
+    - Java checks the String Pool first.
+    - If `"Hello"` already exists there, Java reuses the same object reference.
+    - Otherwise Java creates a new object in the heap.
+- String literals → stored in a special area of heap called the string pool, but referenced from stack.
+
+##### String Literal
+```java
+String name = "Java";  // Stored in the String Pool
+```
+- Efficient, as JVM reuses existing strings in the String Pool.
+
+##### `new` keyword
+```java
+String name = new String("Java"); // Creates a new object in heap
+```
+- Avoid this approach unless needed, as it creates a new object every time.
+
+#### Intern Pool
+- String literals are stored in the String Pool inside the heap.
+- If you create `"Hello"` multiple times, all references point to the same pooled object.
+- You can force pool storage with `intern()`.
+```java
+String s1 = "Hello";
+String s2 = "Hello";
+System.out.println(s1 == s2); // true (same object from pool)
+
+
+String s3 = new String("Hello");
+System.out.println(s1 == s3); // false (different object)
+
+
+String s4 = new String("Hello").intern();
+System.out.println(s1 == s4); // true
+```
+
+### What are Packages?
+- A package in Java is a namespace that groups related classes, interfaces, and sub-packages.
+- File structure must match package name.
+- If you don’t specify a package, the class goes into the default package. This is not recommended for production because it cannot be imported by classes in named packages.
+- If two classes have the same name, Name collisions will occur. We must FQN in that case. eg.,`java.util.Date`, `java.sql.Date`.
+- There are two types of packages.
+    - User defined packages.
+    - Built in packages.
+
+### Explain different data types in java?
+- Data types define the type of data a variable can hold.
+- In Java, Data Types are broadly categorized into Primitive Data Types and Non-Primitive Data Types.
+#### Primitive Data Types
+- Java provides 8 built-in data types
+
+| Data Type      |Description      | Size      |Range      |Example      |
+| :---  | :---   |:---         |:---           |:---          |
+| `byte` | Integer (small range) | 1 byte |-128 to 127 |`byte b = 100;` |
+| `short` | Integer (medium range) | 2 bytes |-32,768 to 32,767 |`short s = 32000;` |
+| `int` | Integer (default) | 4 bytes |-2<sup>31</sup> to 2<sup>31 - 1</sup>|`int i = 123456789;` |
+| `long` | Integer (large range) | 8 bytes |-2<sup>63</sup> to 2<sup>63 - 1</sup>|`long l = 9223372036854775807L;` |
+| `float` | Decimal (single precision) | 4 bytes |3.4028235E38 to ~1.4E-45 |`float f = 3.14F;` |
+| `double` | Decimal (double precision) | 8 bytes |1.7976931348623157E308 to ~4.9E-324 |`double d = 3.141592653589793;` |
+| `char` | Single character | 2 bytes |0 to 65,535 (Unicode character set) |`char c = 'A';` |
+| `boolean` | True or False | 1 bit |true, false |`boolean isJavaFun = true;` |
+
+#### Non-Primitive Data Types | Reference Types
+- Non-primitive data types include Objects, Strings, Arrays, Enums and Classes. 
+- They are also called as  Reference Types.
+- These types refer to objects and hold the memory address (or reference) of the object rather than the actual data. In contrast to primitive types, which store the actual value, reference types store the memory address where the object data is stored.
+- Default value is `null`.
+- The reference variable itself is on the stack, but the object it refers to is stored in the heap.
+
+### What is a Wrapper class in Java?
+- A wrapper class in Java is a class that wraps a primitive data type into an object.
+    - `int` → `Integer`
+    - `double` → `Double`
+    - `char` → `Character`
+boolean → Boolean
+- Each primitive has a corresponding wrapper in `java.lang` package.
+- Wrappers convert primitives to object, which can then be used in Collections/Generics.
+- Objects can be `null`, primitives cannot.
+- Wrappers provide useful constants & methods like `Integer.parseInt(""123)`.
+- Wrapper classes are needed for collections, generics, nullability, and APIs.
+#### Autoboxing and Unboxing
+- Java automatically converts between primitives and wrappers.
+- Autoboxing → primitive → wrapper object.
+- Unboxing → wrapper object → primitive.
+```java
+public class WrapperDemo {
+    public static void main(String[] args) {
+        // Autoboxing
+        int a = 10;
+        Integer obj = a;  // int → Integer
+
+        // Unboxing
+        Integer b = 20;
+        int val = b;      // Integer → int
+
+        System.out.println(obj); // 10
+        System.out.println(val); // 20
+    }
+}
+```
