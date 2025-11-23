@@ -214,10 +214,10 @@ System.out.println(s1 == s4); // true
     - `int` → `Integer`
     - `double` → `Double`
     - `char` → `Character`
-boolean → Boolean
+    - boolean → Boolean
 - Each primitive has a corresponding wrapper in `java.lang` package.
 - Wrappers convert primitives to object, which can then be used in Collections/Generics.
-- Objects can be `null`, primitives cannot.
+- Objects can be `null`, final, but primitives cannot be either.
 - Wrappers provide useful constants & methods like `Integer.parseInt(""123)`.
 - Wrapper classes are needed for collections, generics, nullability, and APIs.
 #### Autoboxing and Unboxing
@@ -237,6 +237,210 @@ public class WrapperDemo {
 
         System.out.println(obj); // 10
         System.out.println(val); // 20
+    }
+}
+```
+### Class variables v/s Instance variables v/s Local variables
+
+| Property | Class variables |Instance variables | Local variables |
+| --- | --- | --- | --- |
+| **Definition** | Class variable ( or static variable) is shared across all objects, initialized once when the class loads, and used for shared constants, counters or configurations. They are declared inside a class, outside any method, constructor or block.  | Instance variables define the state of an object and live on the heap, Variables declared inside a class but outside any method, constructor, or block. | Local variables are temporary and live on the stack, existing only while the method runs, Variables declared inside a method, constructor, or block. |
+| **Scope** | Class | Belongs to an object of the class, each object gets its own copy | Exists only within that method or block. |
+| **Lifetime** | Created when class is loaded, destroyed when class is unloaded. | Exists as long as object exists (until garbage collection) | Created when method is called, destroyed when it ends. |
+| **Default values** | Automatically initialized (`0`, `false`. `null`) | Automatically initialized (`0`, `false`. `null`)| Not initialized automatically, you must assign a value before use. |
+| **Access** | Accessed using class name | Can be accessed using `this.variable` or via object reference | Accessible only within the method/block where declared. |
+| **Storage location** | Stored in method area (class loader memory). | Stored in heap | Stored in stack (method call frame) |
+| **Modifiers** | Can be `final`, `static`, all access modifiers allowed (`public`, `private`, `protected`) | Can be `final`, `static`, all access modifiers allowed (`public`, `private`, `protected`) | Can be `final`, but no access modifiers allowed. |
+
+```java
+class Counter {
+    static int count = 0; // Class variable
+    int id;               // Instance variable
+
+    Counter() {
+        count++;  // shared counter
+        id = count;
+    }
+
+    void show() {
+        System.out.println("Object ID: " + id + ", Total: " + count);
+    }
+
+    public static void main(String[] args) {
+        Counter c1 = new Counter();
+        Counter c2 = new Counter();
+        Counter c3 = new Counter();
+
+        c1.show();
+        c2.show();
+        c3.show();
+    }
+}
+---
+
+class Person {
+    // Instance variable
+    String name;
+    int age; // default value = 0
+
+    void show() {
+        System.out.println("Name: " + name + ", Age: " + age);
+    }
+}
+---
+
+class Demo {
+    void display() {
+        // Local variable
+        int count = 10;
+        System.out.println("Count: " + count);
+    }
+}
+```
+
+## `static` keyword
+- The `static` keyword in Java means “belongs to the class, not to any object.”
+- Usually, normal members → tied to each object instance. Whereas, normal members → tied to each object instance.
+- Static members are more memory efficient.
+- They are used to create utility methods (e.g., `Math.max()`) that can be called without creating objects. They are also used to create constants, configurations, counters etc.
+- Static blocks/methods cannot directly access instance variables.
+- Real-world usages
+    - Utility classes: `java.lang.Math`, `Collections` → all static methods.
+    - Constants: `public static final double PI = 3.14159;`
+    - Singletons: static instance + static `getInstance()` method.
+    - Counters: track how many objects created.
+    - Static factory methods: e.g., `LocalDate.now()`, `Integer.valueOf()`.
+#### Static Variables
+- Shared by all instances of the class.
+- Stored in the method area (not heap).
+- Good for constants or counters.
+- Static variables are not serialized along with the object state. When an object is serialized, only the instance variables and their values are serialized, not the static variables. When the object is deserialized, static variables are initialized to their default values. 
+```java
+class Counter {
+    static int count = 0;  // static field
+
+    Counter() {
+        count++;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Counter c1 = new Counter();
+        Counter c2 = new Counter();
+        System.out.println(Counter.count); // 2 (shared by all objects)
+    }
+}
+```
+#### Static Methods
+- Can be called using the class name (no object needed).
+- Cannot access non-static members (since no object exists).
+- Often used for utility/helper methods.
+- Static methods and blocks can be synchronized, just like instance methods and blocks. However, the synchronization is at the class level, not at the instance level. This means that only one thread can execute a static synchronized method or block for a given class at a time.
+- Static methods can be overloaded in the same way as instance methods. Overloading is the ability to define multiple methods in the same class with the same name but with different parameter lists.
+- Static methods cannot be overridden in Java. When you declare a static method in a subclass with the same signature as a static method in the superclass, it hides the superclass method rather than overriding it.
+```java
+class MathUtil {
+    static int square(int x) {
+        return x * x;
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println(MathUtil.square(5)); // 25
+    }
+}
+```
+#### Static Blocks
+- Run once when the class is loaded.
+- Used for class-level initialization (e.g., loading drivers, static config).
+- Static methods and blocks can be synchronized, just like instance methods and blocks. However, the synchronization is at the class level, not at the instance level. This means that only one thread can execute a static synchronized method or block for a given class at a time.
+```java
+class Config {
+    static String appName;
+
+    static {
+        appName = "MyApp"; // static block runs once
+        System.out.println("Static block executed");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        System.out.println(Config.appName);
+    }
+}
+```
+```java
+class BankAccount {
+    static String bankName = "ABC Bank";   // static variable (shared)
+    String accountHolder;                  // instance variable
+
+    // Constructor
+    BankAccount(String holder) {
+        accountHolder = holder;
+    }
+
+    // Static method
+    static void changeBank(String name) {
+        bankName = name;
+    }
+
+    // Instance method
+    void display() {
+        System.out.println(accountHolder + " - " + bankName);
+    }
+
+    // Static block
+    static {
+        System.out.println("BankAccount class loaded");
+    }
+
+    // Static nested class
+    static class Helper {
+        void help() {
+            System.out.println("Helper for " + bankName);
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        BankAccount a1 = new BankAccount("Alice");
+        BankAccount a2 = new BankAccount("Bob");
+
+        a1.display(); // Alice - ABC Bank
+        a2.display(); // Bob - ABC Bank
+
+        BankAccount.changeBank("XYZ Bank"); // change static variable
+        a1.display(); // Alice - XYZ Bank
+
+        BankAccount.Helper h = new BankAccount.Helper();
+        h.help(); // Helper for XYZ Bank
+    }
+}
+```
+
+### System.out, System.err, System.in 
+##### System.out 
+- It is a PrintStream that is used for writing characters or can be said it can output the data we want to write on the Command Line Interface console/terminal.  
+##### System.err 
+- It is used to display error messages.
+##### System.in 
+- It is an InputStream used to read input from the terminal Window. We can't use the System.in directly so we use Scanner class for taking input with the system.in.
+```java
+class Main {
+    // Main Function
+    public static void main(String[] args)
+    {
+        // Scanner class with System.in
+        Scanner sc = new Scanner(System.in);
+        // Taking input from the user
+        int x = sc.nextInt();
+        int y = sc.nextInt();
+        // Printing the output
+        System.out.printf("Addition: %d", x + y);
     }
 }
 ```
