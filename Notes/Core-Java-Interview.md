@@ -1,11 +1,11 @@
 # Core Java : Interview
 
-###  Is Java Platform Independent? If then how?
+##  Is Java Platform Independent? If then how?
 - Yes, Java is platform Independent
 - `javac` compiles the program to form a bytecode or .class file.
 - This platform independent bytecode can then be executed by the executed by the platform dependent JVM.
 
-### What is JIT?
+## What is JIT?
  - JIT (Just-In-Time) Compilation is a JVM feature where bytecode (platform-independent instructions in `.class` files) is compiled into native machine code while the program is running, so that the CPU can execute it directly.
 - It’s called “just-in-time” because the compilation happens at runtime, only for code that is actually executed.
 - JIT is not a simple compiler — it does runtime optimizations based on actual program behavior:
@@ -21,7 +21,7 @@
 - Adaptive optimization: JVM identifies “hot code” (methods/loops executed many times) and optimizes them aggressively.
 - Makes Java almost as fast as C++ in long-running applications (servers, games, big data systems).
 
-### What are the memory storages available with JVM?
+## What are the memory storages available with JVM?
 ##### Class Area 
 - Stores class level data of every class such as the runtime constant pool, field and method data and the code for methods.
 ##### Heap (biggest area)
@@ -39,7 +39,7 @@
 ##### Native Method Stack
 - Used for executing native code (via JNI, e.g., C/C++ libraries).
 
-### What is ClassLoader?
+## What is ClassLoader?
 - ClassLoaders are special Java objects that are responsible for dynamically loading the java classes and interfaces in JVM during the execution of the bytecode or .class file.
 - Class loading is the process by which the JVM locates, loads, and prepares classes (`.class` bytecode files) into memory so they can be used at runtime.
 - A class is loaded once per ClassLoader. Two ClassLoaders can load the same `.class` into different copies.
@@ -76,7 +76,7 @@ public class LoaderDemo {
 Main started
 Class Loaded!
 ```
-### What is JVM, JRE and JDK?
+## What is JVM, JRE and JDK?
 
 #### JVM
 - Java Virtual Machine is an abstract machine that runs Java bytecode. It is the “engine” that executes Java programs.
@@ -125,7 +125,7 @@ javac HelloWorld.java
 java HelloWorld
 ```
 
-### What is `public static void main(String args[])`?
+## What is `public static void main(String args[])`?
 - `public`
     - Access modifier of main class.
     - Makes the main function globally available.
@@ -138,7 +138,7 @@ java HelloWorld
 - `String[] arg`
     - Stores java command line arguments. It is used to pass command-line arguments to a java program when executed from the command line.
 
-### What is Java String Pool?
+## What is Java String Pool?
 - String Pool is a special area in the Java Heap memory where Java stores unique string literals.  
 - So when you create a new string literal in your code like `String s = "Hello";`, 
     - Java checks the String Pool first.
@@ -176,7 +176,7 @@ String s4 = new String("Hello").intern();
 System.out.println(s1 == s4); // true
 ```
 
-### What are Packages?
+## What are Packages?
 - A package in Java is a namespace that groups related classes, interfaces, and sub-packages.
 - File structure must match package name.
 - If you don’t specify a package, the class goes into the default package. This is not recommended for production because it cannot be imported by classes in named packages.
@@ -185,7 +185,7 @@ System.out.println(s1 == s4); // true
     - User defined packages.
     - Built in packages.
 
-### Explain different data types in java?
+## Explain different data types in java?
 - Data types define the type of data a variable can hold.
 - In Java, Data Types are broadly categorized into Primitive Data Types and Non-Primitive Data Types.
 #### Primitive Data Types
@@ -209,7 +209,7 @@ System.out.println(s1 == s4); // true
 - Default value is `null`.
 - The reference variable itself is on the stack, but the object it refers to is stored in the heap.
 
-### What is a Wrapper class in Java?
+## What is a Wrapper class in Java?
 - A wrapper class in Java is a class that wraps a primitive data type into an object.
     - `int` → `Integer`
     - `double` → `Double`
@@ -240,7 +240,7 @@ public class WrapperDemo {
     }
 }
 ```
-### Class variables v/s Instance variables v/s Local variables
+## Class variables v/s Instance variables v/s Local variables
 
 | Property | Class variables |Instance variables | Local variables |
 | --- | --- | --- | --- |
@@ -422,7 +422,7 @@ public class Main {
 }
 ```
 
-### System.out, System.err, System.in 
+## System.out, System.err, System.in 
 ##### System.out 
 - It is a PrintStream that is used for writing characters or can be said it can output the data we want to write on the Command Line Interface console/terminal.  
 ##### System.err 
