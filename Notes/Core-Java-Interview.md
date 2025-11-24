@@ -3,7 +3,7 @@
 ##  Is Java Platform Independent? If then how?
 - Yes, Java is platform Independent
 - `javac` compiles the program to form a bytecode or .class file.
-- This platform independent bytecode can then be executed by the executed by the platform dependent JVM.
+- This platform independent bytecode can then be executed by the platform dependent JVM.
 
 ## What is JIT?
  - JIT (Just-In-Time) Compilation is a JVM feature where bytecode (platform-independent instructions in `.class` files) is compiled into native machine code while the program is running, so that the CPU can execute it directly.
@@ -443,4 +443,185 @@ class Main {
         System.out.printf("Addition: %d", x + y);
     }
 }
+```
+## What are Operators?
+- Operators are used to manipulate data and variables in Java.
+    - Arithmetic Operators
+    - Relational Operators
+    - Logical Operators
+    - Bitwise Operators
+    - Assignment Operators
+    - Unary Operators
+    - Ternary (Conditional) Operator
+    - Instanceof Operator
+### Bitwise Operators
+- Bitwise operators are used to perform bit-level operations on integer types (byte, short, int, long).
+```java
+int a = 5;  // Binary: 0101
+int b = 3;  // Binary: 0011
+
+System.out.println("a & b: " + (a & b)); // 1 (Binary: 0001)
+System.out.println("a | b: " + (a | b)); // 7 (Binary: 0111)
+System.out.println("a ^ b: " + (a ^ b)); // 6 (Binary: 0110)
+System.out.println("~a: " + (~a));       // -6 (Binary: 1010, Two's complement)
+System.out.println("a << 1: " + (a << 1)); // 10 (Binary: 1010)
+System.out.println("a >> 1: " + (a >> 1)); // 2 (Binary: 0010)
+```
+
+### Ternary Operators
+- The ternary operator is a shorthand for the if-else statement. 
+- It takes three operands: a condition, a value for true, and a value for false.
+```java
+int a = 10;
+int b = 5;
+int result = (a > b) ? a : b;
+System.out.println("Max value: " + result); // 10
+```
+
+## `transient` keyword
+- The `transient` keyword in Java marks a variable not to be serialized when an object is converted into a byte stream.
+- When a class implements `Serializable`, the JVM automatically serializes all non-static, non-transient fields.
+- If a field is marked as `transient` then they are ignored during Serialization. It is reset to default during deserialization.
+- `transient` is commonly used for sensitive data (like passwords, PINs), derived data (can be recalculated later), non-serializable objects (like threads, sockets, file handles).
+
+## `Serializable` Interface
+- `Serializable` is a marker interface (an interface with no methods) used to tell the JVM that this object can be converted to a byte stream and later reconstructed. 
+- When a class implements `Serializable`, the JVM automatically serializes all non-static, non-transient fields.
+- Serialization is the process of converting an object into a sequence of bytes, Deserialization is the process of recreating the object from those bytes.
+
+```java
+class User implements Serializable {
+    String name;
+    int age;
+
+    User(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+}
+```
+
+## String
+- A String in Java is an immutable sequence of characters represented by the class `java.lang.String`. 
+- Unlike primitive types, strings are immutable, meaning their values cannot be changed once created.
+- Internally, since Java 9, a String stores characters as a byte array.
+- `==` &rarr; checks reference equality (same object).
+- `equals()` &rarr; checks value equality.
+- Strings are final, you cannot extend `String` class.
+```java
+String a = "Hello";
+String b = new String("Hello");
+
+System.out.println(a == b);       // false (different objects)
+System.out.println(a.equals(b));  // true (same content)
+```
+### Declaring and Initializing Strings
+#### String Literal
+```java
+String name = "Java";  // Stored in the String Pool
+```
+- Efficient, as JVM reuses existing strings in the String Pool.
+
+#### `new` keyword
+```java
+String name = new String("Java"); // Creates a new object in heap
+```
+- Avoid this approach unless needed, as it creates a new object every time.
+
+### String Immutability
+- Immutability means that once a String is created, the object cannot be changed.
+- Any operation like concatenation, substring, replace → creates a new String object.
+- This helps prevents modification of sensitive data.
+- Helps JVM optimize memory with the String Pool.
+- Immutability ensures:
+    - Thread-safety (safe to share across threads).
+    - Security (e.g., passwords in memory don’t change accidentally).
+    - HashCode caching (faster lookups in HashMap/HashSet). 
+
+```java
+public class StringExample {
+    public static void main(String[] args) {
+        String s1 = "Hello";
+        s1 = s1 + " World"; // Creates a new String object
+        
+        System.out.println(s1); // Output: Hello World
+    }
+}
+```
+### String Pool | Intern Pool
+- String literals are stored in the String Pool inside the heap.
+- If you create `"Hello"` multiple times, all references point to the same pooled object.
+- You can force pool storage with `intern()`.
+```java
+String s1 = "Hello";
+String s2 = "Hello";
+System.out.println(s1 == s2); // true (same object from pool)
+
+
+String s3 = new String("Hello");
+System.out.println(s1 == s3); // false (different object)
+
+
+String s4 = new String("Hello").intern();
+System.out.println(s1 == s4); // true
+```
+
+## `StringBuffer`
+- `StringBuffer` is a mutable, growable, and thread-safe sequence of characters.
+- String is immutable, this means that once it is created, the object cannot be changed. Any operation like concatenation, substring, replace → creates a new String object.
+- While in `StringBuffer`, no new object is created during operations. The buffer simply expands internally.
+- `StringBuffer` is also thread safe as all methods are synchronized.
+
+## `StringBuilder`
+- `StringBuilder` is a mutable, growable, and non-thread-safe sequence of characters.
+- `StringBuilder` is essentially `StringBuffer` but without synchronisation as synchronisation adds overhead.
+- They are the fastest option for String modifications.
+
+## `String` vs `StringBuffer` vs `StringBuilder`
+
+| Feature | `String`| `StringBuffer` | `StringBuilder`|
+| --- | --- | --- | --- |
+| Mutability| Immutable| Mutable | Mutable|
+| Thread safety | Yes | Yes, they are synchronized | No |
+| Performance| Slow | Medium | Fastest |
+
+
+## Arrays
+- An array is a container object that holds a fixed number of values of a single type
+- Java arrays are objects, and they store multiple values, either primitive or reference types, in a contiguous block of memory.
+- Once an array is created, its size cannot be changed.
+- The elements in an array are stored in consecutive memory locations.
+- Array elements are accessed by their index, starting from 0.
+
+### Single-Dimensional Arrays
+```java
+int[] numbers = {1, 2, 3, 4, 5}; // Array of integers
+String[] names = {"Alice", "Bob", "Charlie"}; // Array of strings
+```
+
+### Multi-Dimensional Arrays
+```java
+int[][] matrix = {
+    {1, 2, 3},
+    {4, 5, 6},
+    {7, 8, 9}
+};
+int[][] matrix = new int[3][3]; // 2D array with 3 rows and 3 columns
+
+```
+
+### Arrays of Objects
+- Java arrays can store objects as well as primitive data types. 
+- When you create an array of objects, each element in the array holds a reference to an object.
+```java
+// Array of String Objects
+String[] fruits = new String[3];  // Declare an array of 3 String objects
+fruits[0] = "Apple";  // Assign values to the array
+fruits[1] = "Banana";
+fruits[2] = "Orange";
+
+// Array of custom Objects
+Person[] people = new Person[2];
+people[0] = new Person("Alice", 25);
+people[1] = new Person("Bob", 30);
 ```
