@@ -422,6 +422,16 @@ public class Main {
 }
 ```
 
+## Static method vs Instance method
+
+| Feature | Static Method | Instance Method |
+| --- | --- | --- |
+|Belongs to | Static method is associated with a class rather than an object.  | Instance method is associated with an object rather than a class. |
+| Access | `ClassName.method()`| `obj.method()` |
+| Instance fields | No | Yes |
+| Static fields | Yes | Yes |
+| Polymorphism | No | Yes |
+| use case| Utility, helpers, shared logic |object specific behaviour |
 ## System.out, System.err, System.in 
 ##### System.out 
 - It is a PrintStream that is used for writing characters or can be said it can output the data we want to write on the Command Line Interface console/terminal.  
@@ -592,7 +602,8 @@ System.out.println(s1 == s4); // true
 - Once an array is created, its size cannot be changed.
 - The elements in an array are stored in consecutive memory locations.
 - Array elements are accessed by their index, starting from 0.
-
+- The index of an array signifies the distance from the start of the array. So, the first element has 0 distance therefore the starting index is 0.
+- Arrays in java cannot be `volatile`.
 ### Single-Dimensional Arrays
 ```java
 int[] numbers = {1, 2, 3, 4, 5}; // Array of integers
@@ -625,3 +636,517 @@ Person[] people = new Person[2];
 people[0] = new Person("Alice", 25);
 people[1] = new Person("Bob", 30);
 ```
+## `newInstance()` operator
+- `newInstance()` is a reflection-based method used to create objects dynamically at runtime, without using the `new` keyword.
+
+## Classes
+- A class in Java is a blueprint or template used to create objects.
+- It defines:
+    - State → variables/fields.
+    - Behavior → methods/functions.
+    - Identity → how objects of that class are recognized (via references).
+- An object is an instance of a class.
+- Classes are the building blocks of OOP in Java.
+    - They allow encapsulation (bundle data + behavior).
+    - Enable reuse via inheritance and polymorphism.
+
+#### Types of Classes
+- Concrete class → regular class (like Car).
+- Abstract class → cannot be instantiated, may contain abstract methods.
+- Final class → cannot be subclassed (e.g., String).
+- Nested class → declared inside another class.
+- Anonymous class → defined inline without a name (often with interfaces).
+
+## Fields
+- A variable declared inside a class, but outside any method, constructor, or block. That represents the state of the object.
+- Can be static (shared by class) or instance-specific.
+- Fields declared in class are part of object state and live on the heap.
+#### Types of Fields
+##### Instance Fields
+- Belong to each object instance.
+- Each object has its own copy of instance fields.
+```java
+class Person {
+    String name;  // instance field
+    int age;      // instance field
+}
+```
+##### Static Fields (class variables)
+- Belong to the class itself, shared across all objects.
+```java
+class Person {
+    static int population = 0;  // shared field
+}
+```
+##### Final Fields (constant or immutable) 
+- Assigned once, cannot be changed.
+```java
+class Circle {
+    final double PI = 3.14159;  // constant field
+}
+```
+##### Transient Fields
+- Skipped during serialization.
+```java
+class User {
+    transient String password; // won’t be written to file
+}
+```
+##### Volatile Fields
+- Used in multithreading to ensure visibility across threads.
+- Useful in concurrency but not a replacement for synchronization.
+```java
+class Shared {
+    volatile boolean running = true;
+}
+```
+## Methods
+- A method in Java is a block of code that performs a task, defined inside a class. It represents the behavior of an object or class.
+- While fields define what an object has, methods define what an object does. 
+#### Types of Methods
+##### Instance Methods
+- Belong to objects.
+- Require object creation (`new`).
+ 
+```java
+class Car {
+    void drive() {
+        System.out.println("Car is driving");
+    }
+}
+Car c = new Car();
+c.drive();
+```
+##### Static Methods
+- Belong to the class itself.
+- Called with `ClassName.method()`.
+
+```java
+class MathUtil {
+    static int square(int x) {
+        return x * x;
+    }
+}
+System.out.println(MathUtil.square(5)); // 25
+```
+##### Abstract Methods
+- Declared in an abstract class/interface.
+- No body → must be implemented in subclass.
+```java
+abstract class Animal {
+    abstract void makeSound(); // no body
+}
+class Dog extends Animal {
+    void makeSound() { System.out.println("Bark"); }
+}
+```
+##### Final Methods
+- Cannot be overridden by subclasses.
+```java
+class Base {
+    final void greet() { System.out.println("Hello"); }
+}
+```
+##### Native Methods
+- Declared with `native`, implemented in C/C++ using JNI.
+```java
+public native void printMessage();
+```
+##### Synchronized Methods
+- Used in multithreading to lock objects.
+```java
+synchronized void increment() { counter++; }
+```
+#### Method Overloading vs Overriding
+##### Overloading (Compile-time Polymorphism)
+- Overloading (Compile-time Polymorphism).
+- Overloading cannot differ only by return type.
+```java
+class Calculator {
+    int add(int a, int b) { return a + b; }
+    double add(double a, double b) { return a + b; }
+}
+```
+##### Overriding (Runtime Polymorphism)
+- Subclass provides new implementation for a method defined in parent.
+- Static methods are not overridden → they are hidden (method hiding).
+```java
+class Animal {
+    void sound() { System.out.println("Some sound"); }
+}
+class Dog extends Animal {
+    @Override
+    void sound() { System.out.println("Bark"); }
+}
+```
+
+## Constructors
+- A constructor in Java is a special block of code used to initialize an object when it is created.
+- Constructor has the same name as the class, has no return type (not even `void`) and it is called automatically when you use `new`.
+- It ensures objects start in a valid state.
+- It supports overloading to provide different ways of creating objects.
+- Constructors help avoid writing repetitive initialization code in every method.
+- Constructors cannot be `abstract`, `final`, `static`, or `synchronized`. They can be `private` (used in Singleton pattern).
+#### Types of Constructors
+##### Default Constructors
+- If no constructor is defined, Java provides one automatically.
+- Initializes fields to default values (0, `false`, `null`).
+- If any constructor is defined then java will not generate the default constructor.
+```java
+class Car {
+    String brand;
+    int speed;
+}
+public class Main {
+    public static void main(String[] args) {
+        Car c = new Car(); // default constructor
+        System.out.println(c.brand); // null
+        System.out.println(c.speed); // 0
+    }
+}
+```
+##### Parameterized Constructor
+- Takes arguments to initialize fields.
+
+```java
+class Car {
+    String brand;
+    int speed;
+    Car(String b, int s) {
+        brand = b;
+        speed = s;
+    }
+}
+public class Main {
+    public static void main(String[] args) {
+        Car c = new Car("Toyota", 120);
+        System.out.println(c.brand + " " + c.speed); // Toyota 120
+    }
+}
+```
+#####  Constructor Overloading
+- Multiple constructors with different parameter lists.
+```java
+class Person {
+    String name;
+    int age;
+
+    Person() { name = "Unknown"; age = 0; }
+    Person(String n) { name = n; age = 0; }
+    Person(String n, int a) { name = n; age = a; }
+}
+
+// Usage
+Person p1 = new Person();
+Person p2 = new Person("Alice");
+Person p3 = new Person("Bob", 25);
+```
+##### Copy Constructor
+- Used to copy values from one object to another. 
+```java
+class Student {
+    String name;
+    int age;
+
+    Student(String n, int a) { name = n; age = a; }
+    Student(Student s) { name = s.name; age = s.age; } // copy constructor
+}
+```
+
+#### Constructor Chaining
+- Constructor Chaining is the process of calling one constructor from another within the same class (using `this()`) or from the parent class (using `super()`).
+- It ensures that when an object is created, all relevant constructors are executed in sequence.
+- Instead of repeating initialization logic in multiple constructors, we centralize it. That matters a lot in enterprise apps, frameworks, and libraries.
+- `this()` → calls another constructor in the same class.
+- `super()` → calls a constructor of the parent class.
+- They both must be the first statement in the constructor.
+- A chain ends when it reaches a constructor that does not call another.
+##### Avoiding Code Duplication
+```java
+class User {
+    String username;
+    String email;
+    boolean isActive;
+
+    User(String username) {
+        this(username, "unknown@example.com"); // reuse
+    }
+
+    User(String username, String email) {
+        this(username, email, true); // reuse
+    }
+
+    User(String username, String email, boolean isActive) {
+        this.username = username;
+        this.email = email;
+        this.isActive = isActive;
+    }
+}
+```
+- Without chaining, you’d duplicate the assignment logic in each constructor. With chaining → all constructors reuse the most complete one. If tomorrow you change initialization logic, you change it in one place only.
+##### Ensuring Consistent Initialization
+```java
+class Order {
+    String id;
+    String status;
+
+    Order() {
+        this("000"); // call another constructor
+    }
+
+    Order(String id) {
+        this.id = id;
+        this.status = "NEW";  // centralized rule
+    }
+}
+```
+- No matter how you construct an Order, it always starts with "NEW". This prevents cases where some constructors forget to set status.
+
+## `this` keyword
+- `this` is a reference to the current object — the object on which the method or constructor is being executed.
+- `this` cannot be used in static context.
+- Its most common use case is for accessing instance variables when local variables shadow them and for constructor chaining.
+
+## Nested Classes
+- A nested class is a class defined inside another class.
+- Logical grouping → Example: Map.Entry inside Map.
+- Encapsulation → Implementation details hidden inside outer class.
+- Code organization → Cleaner structure, especially for helper classes.
+#### Types
+##### Static Nested Classes
+- Declared with the `static` keyword.
+- Behaves like a normal top-level class, but is namespaced inside the outer class.
+- Does not have access to outer class’s instance members directly.
+- Can access only static members of the outer class.
+```java
+class Outer {
+    static int data = 100;
+
+    static class StaticNested {
+        void show() {
+            System.out.println("Data: " + data); // ✅ can access static
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Outer.StaticNested obj = new Outer.StaticNested();
+        obj.show(); // Data: 100
+    }
+}
+```
+##### Inner Classes (non-static)
+- Each instance is tied to an outer class instance.
+- Can access all members (including private) of the outer class.
+```java
+class Outer {
+    private String msg = "Hello from Outer";
+
+    class Inner {
+        void print() {
+            System.out.println(msg); // ✅ can access private
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Outer outer = new Outer();
+        Outer.Inner inner = outer.new Inner(); // need outer object
+        inner.print(); // Hello from Outer
+    }
+}
+```
+##### Local Inner Classes
+- Defined inside a method, constructor, or block.
+- Scope is limited to that block.
+- Can access final or effectively final variables of enclosing method.
+```java
+class Outer {
+    void display() {
+        int num = 10; // effectively final
+
+        class LocalInner {
+            void print() {
+                System.out.println("Number: " + num);
+            }
+        }
+
+        LocalInner li = new LocalInner();
+        li.print();
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new Outer().display(); // Number: 10
+    }
+}
+```
+##### Anonymous Inner Classes
+- A class without a name.
+- Defined and instantiated in one step.
+- Commonly used to implement interfaces or extend classes on the fly.
+```java
+interface Greeting {
+    void sayHello();
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Greeting g = new Greeting() {
+            @Override
+            public void sayHello() {
+                System.out.println("Hello from anonymous inner class!");
+            }
+        };
+        g.sayHello();
+    }
+}
+```
+
+## Class modifiers
+#### Access Modifiers
+- They control visibility across packages.
+- `public` - Class is visible to all packages and file name must match the class name.
+- default (package-private) - Class is visible only within the same package.
+- For top-level classes, only `public` and default are allowed. `private` and `protected` are not allowed.
+#### Non-Access Modifiers
+- `final`
+    - Class cannot be subclassed (no inheritance).
+    - Used for security & immutability (e.g., `java.lang.String`).
+- `abstract`
+    - Class cannot be instantiated (no `new`).
+    - May contain abstract methods (without body).
+    - Must be extended by a subclass.
+- `strictfp`
+    - Used when you need platform-independent floating-point results.
+- `static`
+    - Allowed only for nested classes (not top-level classes).
+    - Makes the nested class not depend on an instance of the outer class.
+#### Invalid modifiers
+- `abstract final` → makes no sense (abstract = meant to be subclassed, final = can’t be subclassed).
+- `private` / `protected` top-level classes.
+- `static` top-level class
+- Multiple `public` classes in one file (only one per file, must match filename).
+
+## object in java
+- An object in Java is a runtime instance of a class stored in heap memory. It contains the state (variables), behaviour (methods) and identity (memory address).
+- An object can be declared using a `new` keyword.
+- Objects are always created on the heap.
+
+```java
+Person p = new Person();
+```
+
+| Memory Area | Holds |
+| --- | --- |
+| Stack | reference variable `p` |
+| Heap |  Actual `Person` object (field + methods)|
+
+### Different ways to create an object
+- `new` keyword
+- `Constructor.newInstance()` 
+- `clone()`
+    - creates a shallow copy.
+- Deserialization
+- Factory Methods
+- Builder pattern
+- Copy Constructor
+
+
+## Object Class
+- Every class in Java (directly or indirectly) extends `java.lang.Object`.
+- This makes `Object` the root of the class hierarchy.
+- `Object` class provides common methods used by all objects.
+    - `toString()` - Returns a string representation of the object.
+    - `equals(Object obj)` - Checks if two objects are logically equal. 
+    - `hashCode()` - Returns an integer hash value for the object.
+    - `getClass()` - Returns the runtime Class object (reflection).
+    - `clone()` - Creates a shallow copy.
+- If you don’t explicitly extend another class, your class automatically extends `Object`.
+
+## `instanceof` keyword
+- The `instanceof` keyword is used to test whether an object is an instance of a specific class or subclass (or implements an interface).
+- It returns a boolean, if the reference is `null`, `instanceof` always returns `false`.
+```
+object instanceof ClassName
+```
+```java
+class Animal {}
+class Dog extends Animal {}
+
+public class Main {
+    public static void main(String[] args) {
+        Animal a = new Dog();
+
+        System.out.println(a instanceof Animal); // true
+        System.out.println(a instanceof Dog);    // true
+        System.out.println(a instanceof Object); // true
+    }
+}
+```
+- Since Java 14+, java introduced pattern matching to make `instanceof`+ casting easier. This is cleaner and avoids redundant casting.
+
+```java
+// before
+if (obj instanceof String) {
+    String s = (String) obj; // explicit cast
+    System.out.println(s.toUpperCase());
+}
+
+// after
+if (obj instanceof String s) { // pattern matching
+    System.out.println(s.toUpperCase());
+}
+```
+
+```java
+class Shape {}
+class Circle extends Shape {}
+class Rectangle extends Shape {}
+
+public class Main {
+    public static void printType(Shape s) {
+        if (s instanceof Circle) {
+            System.out.println("It’s a Circle");
+        } else if (s instanceof Rectangle) {
+            System.out.println("It’s a Rectangle");
+        } else {
+            System.out.println("Unknown shape");
+        }
+    }
+
+    public static void main(String[] args) {
+        printType(new Circle());   // It’s a Circle
+        printType(new Rectangle()); // It’s a Rectangle
+    }
+}
+```
+
+## What is Object Cloning?
+- Object cloning means creating an exact copy of an existing object in memory.
+- To enable cloning, the class must implement the `Cloneable` interface and must override the `clone()` (because `clone()` is protected).
+
+```java
+class User implements Cloneable {
+    String name;
+    int age;
+
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone(); // calls Object.clone()
+    }
+}
+
+// in other part of the code 
+
+User u1 = new User();
+u1.name = "Bilal";
+
+User u2 = (User) u1.clone();
+```
+- `u1` and `u2` are different object, but `u2` has the same data as `u1`.
+
+#### Types of Cloning 
