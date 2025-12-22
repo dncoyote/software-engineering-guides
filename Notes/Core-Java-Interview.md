@@ -1227,7 +1227,7 @@ interface A {}
 interface B {}
 class C implements A, B {}
 ```
-## Subclasses
+### Subclasses
 - Subclass (child/derived class) is a class that inherits fields and methods from another class, called the superclass (parent/base class).
 - They will inherit all accessible fields and methods from the parent class and can add new fields/methods.
 - They can override methods to change behavior.
