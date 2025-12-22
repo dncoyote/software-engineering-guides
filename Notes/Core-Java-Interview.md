@@ -137,6 +137,8 @@ java HelloWorld
     - Return type of method.
 - `String[] arg`
     - Stores java command line arguments. It is used to pass command-line arguments to a java program when executed from the command line.
+- The main method in Java is declared as `public static void main(String[] args)` because the JVM needs to call it without creating an object.
+If the main method is not `static`, it becomes an `instance` method, and the JVM cannot call it directly since no object exists at the start of execution.
 
 ## What is Java String Pool?
 - String Pool is a special area in the Java Heap memory where Java stores unique string literals.  
@@ -180,7 +182,7 @@ System.out.println(s1 == s4); // true
 - A package in Java is a namespace that groups related classes, interfaces, and sub-packages.
 - File structure must match package name.
 - If you don’t specify a package, the class goes into the default package. This is not recommended for production because it cannot be imported by classes in named packages.
-- If two classes have the same name, Name collisions will occur. We must FQN in that case. eg.,`java.util.Date`, `java.sql.Date`.
+- If two classes have the same name, Name collisions will occur. We must use FQN in that case. eg.,`java.util.Date`, `java.sql.Date`.
 - There are two types of packages.
     - User defined packages.
     - Built in packages.
@@ -214,11 +216,11 @@ System.out.println(s1 == s4); // true
     - `int` → `Integer`
     - `double` → `Double`
     - `char` → `Character`
-    - boolean → Boolean
+    - `boolean` → `Boolean`
 - Each primitive has a corresponding wrapper in `java.lang` package.
 - Wrappers convert primitives to object, which can then be used in Collections/Generics.
 - Objects can be `null`, final, but primitives cannot be either.
-- Wrappers provide useful constants & methods like `Integer.parseInt(""123)`.
+- Wrappers provide useful constants & methods like `Integer.parseInt("123")`.
 - Wrapper classes are needed for collections, generics, nullability, and APIs.
 #### Autoboxing and Unboxing
 - Java automatically converts between primitives and wrappers.
@@ -1150,3 +1152,716 @@ User u2 = (User) u1.clone();
 - `u1` and `u2` are different object, but `u2` has the same data as `u1`.
 
 #### Types of Cloning 
+
+
+## Inheritance
+- Inheritance is the mechanism where one class (child/subclass/derived class) can acquire the properties and behaviors (fields and methods) of another class (parent/superclass/base class).
+- Code reusability → reuse fields & methods instead of duplicating.
+- Polymorphism → allows one reference type to point to multiple object types.
+- Extensibility → build more specific classes from generic ones.
+- Standardization → all subclasses inherit common behavior.
+- `final` class cannot be inherited, `final` method cannot be overridden.
+
+```java
+class Animal {
+    Animal() {
+        System.out.println("Animal created");
+    }
+}
+
+class Dog extends Animal {
+    Dog() {
+        super(); // calls Animal()
+        System.out.println("Dog created");
+    }
+}
+```
+
+```java
+class Vehicle {
+    String brand = "Generic";
+
+    void start() {
+        System.out.println("Vehicle starting...");
+    }
+}
+
+class Car extends Vehicle {
+    int wheels = 4;
+
+    @Override
+    void start() {
+        System.out.println(brand + " car starting with " + wheels + " wheels");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Vehicle v = new Car();  // polymorphism
+        v.start(); // Car’s overridden method
+    }
+}
+```
+#### Types of Inheritance
+##### Single Inheritance
+```java
+class Parent {}
+class Child extends Parent {}
+```
+##### Multilevel Inheritance
+```java
+class Grandparent {}
+class Parent extends Grandparent {}
+class Child extends Parent {}
+```
+##### Hierarchical Inheritance
+```java
+class Parent {}
+class Child1 extends Parent {}
+class Child2 extends Parent {}
+```
+##### Multiple Inheritance
+- Unlike C++ or Python, Java does not allow multiple inheritance with classes (to avoid ambiguity, e.g., diamond problem). Instead, it uses interfaces.
+```java
+interface A {}
+interface B {}
+class C implements A, B {}
+```
+## Subclasses
+- Subclass (child/derived class) is a class that inherits fields and methods from another class, called the superclass (parent/base class).
+- They will inherit all accessible fields and methods from the parent class and can add new fields/methods.
+- They can override methods to change behavior.
+- They can call parent’s constructor/methods using `super`.
+- A subclass can itself be a superclass of another class (multi-level inheritance).
+```java
+class Animal {
+    void eat() {
+        System.out.println("Animal is eating");
+    }
+}
+
+class Dog extends Animal {
+    void bark() {
+        System.out.println("Dog is barking");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Dog d = new Dog();
+        d.eat();  // inherited from Animal
+        d.bark(); // Dog’s own method
+    }
+}
+//OP
+Animal is eating
+Dog is barking
+```
+##### Overriding Methods
+```java
+class Animal {
+    void sound() { System.out.println("Some sound"); }
+}
+
+class Dog extends Animal {
+    @Override
+    void sound() { System.out.println("Bark"); }
+}
+```
+##### Constructors in Subclasses
+```java
+class Animal {
+    Animal() { System.out.println("Animal created"); }
+}
+
+class Dog extends Animal {
+    Dog() { System.out.println("Dog created"); }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Dog d = new Dog();
+    }
+}
+//OP
+Animal created
+Dog created
+```
+
+#### Accessing Superclass members
+- Superclass members can be accessed using `super`.
+- `super` must be the first line in a constructor.
+- `super` cannot be used in static context.
+- Subclass cannot access private members of the superclass (only public/protected/package-private).
+##### Accessing Superclass Fields
+- `super.fieldName`
+
+```java
+class Animal {
+    String type = "Animal";
+}
+
+class Dog extends Animal {
+    String type = "Dog";
+
+    void printType() {
+        System.out.println(type);        // Dog
+        System.out.println(super.type);  // Animal
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new Dog().printType();
+    }
+}
+```
+##### Accessing Superclass Methods
+- `super.methodName()`
+
+```java
+class Animal {
+    void sound() { System.out.println("Some sound"); }
+}
+
+class Dog extends Animal {
+    @Override
+    void sound() {
+        super.sound(); // calls Animal’s sound()
+        System.out.println("Bark");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new Dog().sound();
+    }
+}
+
+//OP
+Some sound
+Bark
+```
+##### Accessing Superclass Constructors
+- `super()`
+
+```java
+class Animal {
+    Animal(String name) {
+        System.out.println("Animal created: " + name);
+    }
+}
+
+class Dog extends Animal {
+    Dog() {
+        super("Dog"); // explicitly call parent constructor
+        System.out.println("Dog created");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        new Dog();
+    }
+}
+
+//OP
+Animal created: Dog
+Dog created
+```
+
+## Method Overriding
+- Method overriding happens when a subclass provides a new implementation for a method that is already defined in its superclass.
+- It allows the subclass to customize or completely change behavior while keeping the same method signature.
+- It should have the same methods name, parameter list and return type.
+- It should not reduce visibility.
+    - If parent method is `public`, then child method must be `public`.
+    - If parent method is `protected` then child method can be `protected` or `public`.
+- It should not throw new or broader checked exceptions than parent method.
+```java
+class Parent {
+    void read() throws IOException {}
+}
+
+class Child extends Parent {
+    @Override
+    void read() throws FileNotFoundException {} // ✅ allowed (narrower)
+}
+```
+```java
+class Child2 extends Parent {
+    @Override
+    void read() throws Exception {} // ❌ broader checked exception not allowed
+}
+```
+- Final methods, static methods, private methods and constructors cannot be overridden.
+
+```java
+class Animal {
+    void sound() {
+        System.out.println("Some generic sound");
+    }
+}
+
+class Dog extends Animal {
+    @Override
+    void sound() {
+        System.out.println("Bark");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Animal a = new Dog();
+        a.sound(); // Bark (runtime polymorphism)
+    }
+}
+```
+- Even though reference type is `Animal`, the actual object (`Dog`) determines which method is called.
+- This is runtime polymorphism (dynamic dispatch).
+- Use `@Override` Annotation for clarity, it gives a compile-time error if the method doesn’t correctly override. 
+```java
+class Cat extends Animal {
+    @Override
+    void sound() { // ✅ correct override
+        System.out.println("Meow");
+    }
+}
+```
+#### Method Overriding vs Runtime Polymorphism vs Dynamic Method dispatch
+##### Method Overriding (what you write in code) 
+- Method overriding happens when a subclass provides a new implementation for a method that is already defined in its superclass.
+##### Runtime Polymorphism (what you achieve)
+- The ability of a superclass reference to point to objects of different subclasses, and the correct method implementation is chosen at runtime.
+- This is achieved through method overriding.
+##### Dynamic Method Dispatch (how JVM actually does this) 
+- The mechanism inside the JVM that makes runtime polymorphism possible.
+- When an overridden method is called through a superclass reference, Java uses dynamic method dispatch to determine which version to execute.
+- The method call is resolved dynamically at runtime, not statically at compile time.
+
+## Interface
+- An interface in Java is a contract that defines a set of abstract methods (and constants) that a class must implement.
+- Interface tells you what to do (Abstraction) and the class implementing the interface tells you how to do it.
+- They can help achieve Multiple Inheritance.
+- Core of Java frameworks (e.g., `List`, `Map`, `Runnable`).
+- `List` is an interface and `ArrayList`, `LinkedList`, `Vector` are all its implementations.
+#### Characteristics
+- All methods are `public` & `abstract` by default (before Java 8).
+- Interfaces can have `default`, `static`, `private` methods (after Java 8).
+- Variables are `public`, `static`, and `final` by default.
+- A class must use `implements` to provide method definitions.
+- A class can implement multiple interfaces (solves multiple inheritance problem).
+- An interface can extend another interface.
+```java
+// ===============================
+// Define first interface (before Java 8 style)
+// ===============================
+interface Animal {
+    // 1. Methods are public & abstract by default
+    void sound();    // abstract method
+    void move();
+
+    // 2. Variables are public, static, final by default
+    int LEGS = 4;   // equivalent to: public static final int LEGS = 4;
+
+    // 3. Default method (Java 8+)
+    default void sleep() {
+        System.out.println("Animal is sleeping...");
+    }
+
+    // 4. Static method (Java 8+)
+    static void info() {
+        System.out.println("Animals are living beings");
+    }
+
+    // 5. Private helper method (Java 9+)
+    private void log(String msg) {
+        System.out.println("LOG: " + msg);
+    }
+
+    // Default method using private helper
+    default void eat() {
+        log("Animal is eating...");
+        System.out.println("Animal eats food");
+    }
+}
+
+// ===============================
+// Define second interface
+// ===============================
+interface Pet {
+    void play(); // abstract by default
+
+    default void ownerInfo() {
+        System.out.println("This pet belongs to a caring owner.");
+    }
+}
+
+// ===============================
+// Class implementing multiple interfaces
+// ===============================
+class Dog implements Animal, Pet {
+
+    // Implement abstract methods from Animal
+    public void sound() {
+        System.out.println("Dog barks: Woof Woof!");
+    }
+
+    public void move() {
+        System.out.println("Dog runs on " + LEGS + " legs.");
+    }
+
+    // Implement abstract method from Pet
+    public void play() {
+        System.out.println("Dog is playing fetch.");
+    }
+}
+
+// ===============================
+// Main class to run the demo
+// ===============================
+public class Main {
+    public static void main(String[] args) {
+        Dog d = new Dog();
+
+        // Abstract methods implemented in Dog
+        d.sound();
+        d.move();
+        d.play();
+
+        // Using default methods from interfaces
+        d.sleep();     // from Animal
+        d.eat();       // from Animal
+        d.ownerInfo(); // from Pet
+
+        // Using static method from interface
+        Animal.info();
+
+        // Accessing interface variable
+        System.out.println("Dogs have " + Animal.LEGS + " legs.");
+    }
+}
+```
+#### `default` methods
+- A `default` method in an interface is a method with a body (implementation) that classes implementing the interface automatically inherit.
+- If a class implements two interfaces that have the same `default` method, you must resolve the conflict by overriding it.
+- `default` method  doesn’t exist in abstract classes — as they just have normal methods with bodies, which serve the same purpose.
+## Abstract Classes
+- An abstract class is a class that cannot be instantiated directly, but can be extended by other classes. It serves as a blueprint for other classes to derive from and provides common functionality that can be inherited by its subclasses.
+- An abstract class may contain abstract methods (methods without implementation).
+- An abstract class may also contain concrete methods (methods with implementation).
+- Abstract class must be extended by a subclass which provides implementations for abstract methods.
+- They sit somewhere between normal classes and interfaces.
+
+#### Characteristics
+- Declared using `abstract` keyword.
+- Can have abstract methods (no body) and concrete methods.
+- A subclass must implement all abstract methods, or itself be declared abstract.
+- Can have constructors (used when subclass is created).
+- Can have fields, static methods, final methods.
+- Can extend another class (abstract or not).
+- A class can only extend one abstract class (single inheritance rule).
+
+```java
+abstract class Animal {
+    // Abstract method (no body)
+    abstract void sound();
+
+    // Concrete method
+    void sleep() {
+        System.out.println("Sleeping...");
+    }
+}
+
+class Dog extends Animal {
+    @Override
+    void sound() {
+        System.out.println("Bark");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Animal a = new Dog(); // Polymorphism
+        a.sound();  // Bark
+        a.sleep();  // Sleeping...
+    }
+}
+```
+
+# Collections Framework 
+- The Collections Framework (JCF) is a unified architecture for storing, manipulating, and transferring groups of objects.
+- It includes Interfaces (e.g., `List`, `Set`, `Map`, `Queue`)
+- And also include Implementations (e.g., `ArrayList`, `HashSet`, `HashMap`)
+- Algorithms (e.g., sorting, searching — in Collections class)
+
+```
+
+java.lang.Iterable
+        │
+        └── java.util.Collection
+                 │
+     ┌───────────┼─────────────┬────────────┐
+     │           │             │            │
+   List         Set          Queue       Deque
+     │           │             │            │
+     │           │             │            │
+     │           │             │            │
+     │           │             │            │
+     │           │             │            │
+  ┌──┴──┐    ┌───┴───┐     ┌───┴───┐    ┌───┴────┐
+  │      │    │       │     │       │    │        │
+ArrayList LinkedList HashSet SortedSet PriorityQueue ArrayDeque
+Vector   CopyOnWriteArrayList LinkedHashSet TreeSet  ConcurrentLinkedQueue
+Stack    (legacy)   EnumSet   CopyOnWriteArraySet   LinkedBlockingQueue
+                     (specialized)   (thread-safe)  ArrayBlockingQueue
+```
+## Collection Interfaces
+- Collection Interfaces
+    - List
+    - Set
+    - Map
+    - Queue
+    - Deque
+- In addition to these interfaces, all Collection implementations inherit both `Iterable` and `Collection` interfaces — either directly or indirectly.
+
+### Iterable
+- `Iterable<T>` is the superinterface of the entire Collection hierarchy.
+- This means that every class implementing `Collection` — and by extension, all lists, sets, queues — also implement `Iterable`.
+```java
+for (String name : new ArrayList<String>()) {
+    // works automatically because ArrayList implements Iterable
+}
+```
+- `Iterable<T>` interface (in `java.lang`) represents a sequence of elements that can be iterated one by one.
+- This is the foundation for every class that supports iteration using the `for-each` loop (enhanced for loop) or iterators.
+- `Iterator` is another interface (`java.util`) that provides a cursor-like mechanism to iterate (traverse) through elements of a collection one by one. It is returned by the `iterator()` method of any class that implements `Iterable`.
+- So `Iterable` return an `Iterator` to traverse the collection sequentially.
+
+### Collection 
+- The Collection interface (in `java.util`) represents a group of individual objects — known as elements.
+- It defines the common methods that all collections (except `Map`) share.
+- So every `List`, `Set`, and `Queue` class inherits all the `Collection` methods.
+- Only `Map` stands outside — it’s not a subtype of `Collection`.
+
+```java
+// Core methods
+    int size();
+    boolean isEmpty();
+    boolean contains(Object o);
+    Iterator<E> iterator();
+    Object[] toArray();
+    <T> T[] toArray(T[] a);
+    boolean add(E e);
+    boolean remove(Object o);
+    boolean containsAll(Collection<?> c);
+    boolean addAll(Collection<? extends E> c);
+    boolean removeAll(Collection<?> c);
+    boolean retainAll(Collection<?> c);
+    void clear();
+    boolean equals(Object o);
+    int hashCode();
+```
+## List
+- The `List` interface (in `java.util`) represents an ordered collection that allows duplicates and provides positional access to elements (via an index).
+- Order - Maintains insertion order.
+- Duplicates - Allowed.
+- Nulls - Allowed (depends)
+- Thread-safety - not thread safe.
+- Primary purpose - Indexed, ordered sequence of elements
+- Implementations of `List` interfaces
+    - `ArrayList`
+    - `LinkedList` (LinkedList in Java implements both the List and Deque interfaces)
+    - `CopyOnWriteArrayList`
+    - `Vector`(Legacy)
+### ArrayList
+- `ArrayList` is a resizable, ordered, index-based list that implements the `List` interface
+- It’s the go-to data structure when you want fast random access, ordered elements, and dynamic resizing
+- Order - Maintains insertion order.
+- Duplicates - Allowed.
+- Nulls - Allowed 
+- Thread-safety - not thread safe (use `Collections.synchronizedList()` if needed).
+- Underlying Structure - Dynamic Array
+- Index-based Access - Fast O(1)
+- Insertion/Deletion - Slower in middle O(n)
+#### Internal Working
+-  `ArrayList` is a dynamic array-based data structure — it behaves like a normal Java array but can grow and shrink automatically as elements are added or removed.
+- Under the hood, it uses an array (`Object[] elementData`) to store elements.
+- When full, it creates a bigger array, copies elements, and replaces the old one.
+- ArrayList is backed by a dynamic array - A dynamic array is just like a normal Java array, except it can automatically grow (or sometimes shrink) when needed.
+
+```java
+int[] arr = new int[3];
+arr[0] = 10;
+arr[1] = 20;
+arr[2] = 30;
+// arr[3] = 40; ❌  -> ArrayIndexOutOfBoundsException
+
+List<Integer> list = new ArrayList<>();
+list.add(10);
+list.add(20);
+list.add(30);
+list.add(40);
+//When the internal array gets full →
+//Java creates a new array (1.5x bigger) → copies old data into it → continues normally.
+```
+#### Iterations
+```java
+for (int i = 0; i < fruits.size(); i++) {
+    System.out.println(fruits.get(i));
+}
+```
+```java
+for (String fruit : fruits) {
+    System.out.println(fruit);
+}
+```
+```java
+Iterator<String> it = fruits.iterator();
+while (it.hasNext()) {
+    System.out.println(it.next());
+}
+```
+```java
+fruits.forEach(System.out::println);
+```
+### LinkedList
+- The `LinkedList` class in Java is a doubly linked list implementation of the `List` and `Deque` interfaces.
+- LinkedList stores each element in a separate node, linked together using next and previous pointers.
+- It’s one of the most flexible data structures in Java as it works like a List, Queue, Deque, Stack - can be ordered as FIFO and LIFO.
+- Order - Maintains insertion order.
+- Duplicates - Allowed.
+- Nulls - Allowed 
+- Thread-safety - not thread safe 
+- Underlying Structure - Doubly Linked List
+- Random Access - Slower O(n)
+- Insertion/Deletion at ends - Faster O(1)
+
+#### Internal Working
+- `LinkedList` internally manages a chain of Node objects connected by `next` and `prev` pointers.
+This design enables constant-time insertion and removal at the ends, but makes random access slow (O(n)) and memory usage higher than `ArrayList`.
+##### Underlying Structure
+- `LinkedList` is implemented as a Doubly Linked List.
+- Each element is wrapped inside a Node object
+- The list maintains two pointers:
+    - `first` → points to the head node
+    - `last` → points to the tail node
+```java
+private static class Node<E> {
+    E item;
+    Node<E> next;
+    Node<E> prev;
+
+    Node(Node<E> prev, E element, Node<E> next) {
+        this.item = element;
+        this.next = next;
+        this.prev = prev;
+    }
+}
+```
+```java
+null <- [10] <-> [20] <-> [30] -> null
+```
+##### How elements are stored
+- Each node stores:
+    - the data (item),
+    - a reference to the next node,
+    - a reference to the previous node.
+- Nodes are stored non-contiguously in memory (scattered across the heap).
+##### Adding elements
+- When you call add(E e):
+    - A new node is created.
+    - Its `prev` points to the current `last` node.
+    - The old `last.next` points to this new node.
+    - The last `pointer` is updated to the new node.
+- Insertion at head or tail is O(1) (only pointer updates).
+- Insertion at a specific index is O(n) (traversal required).
+##### Removing elements
+- Find the node (traverse from head or tail).
+- Update its neighbors, node becomes unlinked and garbage-collected.
+```java
+prev.next = next;
+next.prev = prev;
+```
+- Removal at ends → O(1)
+- Removal in middle → O(n)
+##### Accessing elements
+- `get(index)` must traverse nodes sequentially:
+    - From head if `index < size/2`
+    - From tail if `index >= size/2`
+- Hence random access = O(n) (unlike ArrayList’s O(1)).
+### CopyOnWriteArrayList
+- `CopyOnWriteArrayList` is a thread-safe implementation of the `List` interface — found in the `java.util.concurrent` package.
+- It’s a replacement for synchronized ArrayList or Vector, optimized for Frequent reads, and Rare writes.
+- Whenever the list is modified (add/remove/set), it creates a new internal copy of the array. That is why its called **Copy-On-Write** - Copy the array on each write operation. This ensures that reads never get blocked and writers never interfere with readers.
+- In CopyOnWriteArrayList: a new array is created and swapped each time you write. Therefore there is no `ConcurrentModificationException`
+- Order - Maintains insertion order.
+- Duplicates - Allowed.
+- Nulls - Allowed 
+- Thread-safety - yes 
+- Underlying Structure - Dynamic Array 
+- Index-based Access - Fast O(1)
+- Insertion/Deletion - Slower in middle O(n)
+
+## Set
+- The `Set` interface (in `java.util`) represents a collection of unique elements — it does not allow duplicates and generally has no defined ordering (depending on implementation).
+- Order - Unordered (depends)
+- Duplicates - Not allowed
+- Nulls - One allowed (in HashSet) 
+- Thread-safety - not thread safe.
+- Primary purpose - Stores unique elements
+- Implementations of `Set` interfaces
+    - `HashSet`
+    - `LinkedHashSet`
+    - `TreeSet`
+    - `EnumSet`
+    - `CopyOnWriteArraySet`
+ 
+## Map
+- The `Map<K,V>` interface (in `java.util`) represents a collection that maps unique keys to values. 
+- It is not a subtype of `Collection` interface.
+- Order - Depends
+- Duplicates - Keys cannot be duplicate, value can be duplicate.
+- Nulls - One null key, many null values
+- Thread-safety - not thread safe.
+- Primary purpose - Key-value map sorted by key.
+- Implementations of `Map` Interfaces
+    - `HashMap`
+    - `LinkedHashMap`
+    - `TreeMap`
+    - `WeakHashMap`
+    - `IdentityHashMap`
+    - `ConcurrentHashMap`
+    - `Hashtable` (legacy)
+- Iterating over Entries
+```java
+for (Map.Entry<Integer, String> entry : map.entrySet()) {
+    System.out.println(entry.getKey() + " => " + entry.getValue());
+}
+```
+
+## Queue
+- The `Queue` interface (in `java.util`) represents a collection designed to hold elements prior to processing — typically following a FIFO (First-In-First-Out) order.
+- Order - FIFO
+- Duplicates - Allowed
+- Nulls - not allowed (depends) 
+- Thread-safety - not thread safe
+- Primary purpose - Holds elements for processing in order
+- Implementations of `Queue` Interfaces
+    - `PriorityQueue`
+    - `ConcurrentLinkedQueue`
+    - `BlockingQueue` (concurrent)
+        - `ArrayBlockingQueue`
+        - `LinkedBlockingQueue`
+        - `PriorityBlockingQueue`
+## Deque
+- The `Deque` interface (in `java.util`) represents a double-ended queue, allowing insertion and removal of elements from both ends — front and rear - they follow FIFO and LIFO order.
+- Order - FIFO/LIFO
+- Duplicates - Allowed
+- Nulls - not allowed (depends)
+- Thread-safety - not thread safe
+- Primary purpose - Double-ended queue (acts as queue + stack) 
+- Implementations of `Deque`Interfaces
+    - `ArrayDeque`
+    - `LinkedList` (LinkedList in Java implements both the List and Deque interfaces)
+    - `LinkedBlockingDeque` (concurrent)
