@@ -1816,7 +1816,35 @@ next.prev = prev;
     - `TreeSet`
     - `EnumSet`
     - `CopyOnWriteArraySet`
- 
+
+### HashSet
+- `HashSet` is a Set implementation backed internally by a `HashMap`.
+- `HashSet` stores elments as keys in a `HashMap`.
+- Order - Not guaranteed.
+- Duplicates - Not Allowed.
+- Nulls - 1 Allowed 
+- Thread-safety - no 
+- Underlying Structure - HashMap backed 
+
+```java
+Set<String> set = new HashSet<>();
+
+// Duplicates: ignored (no error, just no change)
+set.add("Java");
+set.add("Java"); // duplicate -> ignored
+
+// Nulls: allowed once
+set.add(null);
+set.add(null); // duplicate null -> ignored
+
+// Order: not guaranteed
+set.add("Spring");
+set.add("Kafka");
+set.add("Docker");
+
+set.remove("Spring");
+```
+
 ## Map
 - The `Map<K,V>` interface (in `java.util`) represents a collection that maps unique keys to values. 
 - It is not a subtype of `Collection` interface.
