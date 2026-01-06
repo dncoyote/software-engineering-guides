@@ -302,7 +302,7 @@ class Demo {
 
 ## `static` keyword
 - The `static` keyword in Java means “belongs to the class, not to any object.”
-- Usually, normal members → tied to each object instance. Whereas, normal members → tied to each object instance.
+- Usually, instance (non-static) members → tied to each object instance. Whereas, static members → tied to class as a whole.
 - Static members are more memory efficient.
 - They are used to create utility methods (e.g., `Math.max()`) that can be called without creating objects. They are also used to create constants, configurations, counters etc.
 - Static blocks/methods cannot directly access instance variables.
@@ -314,7 +314,7 @@ class Demo {
     - Static factory methods: e.g., `LocalDate.now()`, `Integer.valueOf()`.
 #### Static Variables
 - Shared by all instances of the class.
-- Stored in the method area (not heap).
+- Static variables are stored in the class metadata area (Metaspace in Java 8+). There is only one copy per class, and they are created when the class is loaded, independent of object creation.
 - Good for constants or counters.
 - Static variables are not serialized along with the object state. When an object is serialized, only the instance variables and their values are serialized, not the static variables. When the object is deserialized, static variables are initialized to their default values. 
 ```java
@@ -1845,6 +1845,45 @@ set.add("Docker");
 set.remove("Spring");
 ```
 
+### LinkedHashSet
+- `LinkedHashSet` is a Set implementation that maintains insertion order while still enforcing uniqueness.
+- Order - Insertion order preserved.
+- Duplicates - Not Allowed.
+- Nulls - 1 Allowed 
+- Thread-safety - no 
+- Underlying structure - Hash table + doubly linked list
+- LinkedHashSet is slower that HashSet because it maintains a doubly linked list in addition to hashing.
+#### Internal Working
+- LinkedHashSet is backed by a LinkedHashMap
+    - Hash table → fast lookup (`hashCode()` + `equals()`)
+    - Doubly linked list → maintains insertion order
+- Each entry is linked like this 
+```java
+prev <-> current <-> next
+```
+
+```java
+Set<String> set = new LinkedHashSet<>();
+
+set.add("Java");
+set.add("Spring");
+set.add("Kafka");
+set.add("Java");  // duplicate → ignored
+set.add(null);    // allowed once
+
+for (String s : set) {
+    System.out.println(s);
+}
+// output (guaranteed order)
+
+Java
+Spring
+Kafka
+null
+```
+
+### TreeSet
+
 ## Map
 - The `Map<K,V>` interface (in `java.util`) represents a collection that maps unique keys to values. 
 - It is not a subtype of `Collection` interface.
@@ -1852,7 +1891,7 @@ set.remove("Spring");
 - Duplicates - Keys cannot be duplicate, value can be duplicate.
 - Nulls - One null key, many null values
 - Thread-safety - not thread safe.
-- Primary purpose - Key-value map sorted by key.
+- Primary purpose - Key-value association, sorting depends on implementation.
 - Implementations of `Map` Interfaces
     - `HashMap`
     - `LinkedHashMap`
@@ -1868,6 +1907,59 @@ for (Map.Entry<Integer, String> entry : map.entrySet()) {
 }
 ```
 
+### `HashMap`
+- HashMap<K, V> is a hash table–based implementation of the Map interface.
+- It stores data as key–value pairs using hashing for fast lookup.
+- Order - Not guaranteed, iteration order can change due to rehashing or resizing.
+- Duplicates - Keys cannot be duplicate, value can be duplicate.
+- Nulls - One null key, many null values
+    - null is handled as a special case mapped to bucket index 0.
+- Thread-safety - not thread safe.
+    - No synchronization on critical operations liek `put()`, `get()`, `remove()`, `resize()`, etc.
+- Primary purpose - Fast Key-value lookup, used in caches, config maps, lookup tables etc.
+
+#### Internal Working
+- HashMap works by
+    - Hashing keys to bucket indices
+    - Storing entries in an array of buckets
+    - Resolving collisions via chaining or trees and 
+    - Resizing dynamically to maintain constant-time performance
+##### `put(key, value)`
+- When `map.put("Java", 1)` is called, `hash` is computed using `key.hashCode()`.
+- Bucket index is computed using `hash`.
+- Checks the bucket
+    - If bucket is empty -> Insert new node.
+    - If bucket is not empty
+        - If `hash` + `equals()` match → overwrite value
+        - Else → collision → append node
+######  Java collision handling
+- Before Java 8, buckets used linked lists and the worst case lookup complexity was `O(n)`.
+- Post Java 8, buckets start as linked lists and when the entries >= 8, then its converted to Red Black Tree and the look up complexity becomes `O(log n)`. This process is called Treeification.
+
+##### `get(key)`
+- When `map.get("Java")` is called, hash is computed and bucket index is identified.
+- Compare the key using `equals()` and return the value if found.
+
+#### Hashing
+- Hashing is the process of converting an input (key) into a fixed-size numeric value (hash) using a hash function, so the data can be stored and retrieved efficiently.
+- When Java calls `key.hashCode()`, the hash code generated is converted into a bucket index.
+- The entry is stored in that bucket.
+- During lookup, 
+    - Java recomputes the hash.
+    - Goes to the same bucket.
+    - Uses `equals()` to find the exact key.
+
+#### Hash Collision
+- A hash collision occurs when two different keys produce the same hash value or map to the same bucket in a hash table.
+- Collisions are inevitable (first principles)
+    - Hash space (int range) is finite
+    - Key space (objects) is effectively infinite
+    - By the pigeonhole principle, collisions must occur.
+
+### LinkedHashMap
+### TreeMap
+### ConcurrentHashMap 
+
 ## Queue
 - The `Queue` interface (in `java.util`) represents a collection designed to hold elements prior to processing — typically following a FIFO (First-In-First-Out) order.
 - Order - FIFO
@@ -1882,6 +1974,7 @@ for (Map.Entry<Integer, String> entry : map.entrySet()) {
         - `ArrayBlockingQueue`
         - `LinkedBlockingQueue`
         - `PriorityBlockingQueue`
+### PriorityQueue 
 ## Deque
 - The `Deque` interface (in `java.util`) represents a double-ended queue, allowing insertion and removal of elements from both ends — front and rear - they follow FIFO and LIFO order.
 - Order - FIFO/LIFO
@@ -1893,3 +1986,7 @@ for (Map.Entry<Integer, String> entry : map.entrySet()) {
     - `ArrayDeque`
     - `LinkedList` (LinkedList in Java implements both the List and Deque interfaces)
     - `LinkedBlockingDeque` (concurrent)
+
+### ArrayDeque 
+### Hashtable
+### Stack 
