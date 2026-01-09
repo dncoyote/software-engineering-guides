@@ -2130,6 +2130,55 @@ System.out.println(map.get("Java"));
         - `LinkedBlockingQueue`
         - `PriorityBlockingQueue`
 ### PriorityQueue 
+- `PriorityQueue<E>` is a queue where elements are ordered by priority rather than insertion order.
+- By default, it is a min-heap. The highest-priority element (smallest by ordering) is always at the head.
+- Order - Not insertion order, but by Priority Order where head is the highest priority. 
+- Duplicates - Allowed
+- Nulls - not allowed
+- Thread-safety - not thread safe
+- Underlying Structure - Binary-heap
+- Primary purpose - for priority-based processing
+- Iteration does not respect priority, `peek()` / `poll()` only respects priority.
+```java
+//min-heap
+PriorityQueue<Integer> pq = new PriorityQueue<>();
+pq.add(40);
+pq.add(10);
+pq.add(30);
+pq.add(20);
+
+pq.peek(); // 10
+
+// Now behaves like maxHeap
+PriorityQueue<Integer> maxHeap =
+    new PriorityQueue<>((a, b) -> b - a);
+```
+- When using PriorityQueue with custom objects then the class must always implement Comparable or use Comparator.
+
+```java
+// using Comparable
+class Task implements Comparable<Task> {
+    int priority;
+
+    Task(int priority) {
+        this.priority = priority;
+    }
+
+    @Override
+    public int compareTo(Task other) {
+        return Integer.compare(this.priority, other.priority);
+    }
+}
+
+PriorityQueue<Task> tasks = new PriorityQueue<>();
+tasks.add(new Task(3));
+tasks.add(new Task(1));
+tasks.add(new Task(2));
+
+// using Comparator
+PriorityQueue<Task> tasks =
+    new PriorityQueue<>((a, b) -> b.priority - a.priority);
+```
 ## Deque
 - The `Deque` interface (in `java.util`) represents a double-ended queue, allowing insertion and removal of elements from both ends — front and rear - they follow FIFO and LIFO order.
 - Order - FIFO/LIFO
@@ -2145,3 +2194,4 @@ System.out.println(map.get("Java"));
 ### ArrayDeque 
 ### Hashtable
 ### Stack 
+### Vector 
