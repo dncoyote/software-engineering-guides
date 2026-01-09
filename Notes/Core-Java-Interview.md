@@ -2062,6 +2062,7 @@ map.put(new User(3), "C");
 ```
 ### ConcurrentHashMap 
 - `ConcurrentHashMap<K,V>` is a thread-safe Map implementation designed for high concurrency without locking the entire map.
+- Locking is achieved by Fine-grained locking, this means locking only the smallest necessary part of a data structure (e.g., a bucket or node), so multiple threads can operate on different parts at the same time. This results in less contention, lower latency and higher throughput.
 - Order - Not guaranteed 
 - Duplicates - Keys cannot be duplicate, value can be duplicate.
 - Nulls - Not allowed for keys and values
@@ -2069,6 +2070,51 @@ map.put(new User(3), "C");
 - Primary purpose - Concurrent HashMap allows concurrent reads and writes using fine-grained locking and lock-free reads, providing high scalability without global synchronization
 - Underlying Structure - Hash Table + synchronization 
 
+```java
+Map<String, Integer> map = new ConcurrentHashMap<>();
+
+map.put("Java", 1);
+map.put("Spring", 2);
+
+// Atomic update
+map.compute("Java", (k, v) -> v + 1);
+
+// Safe concurrent read
+System.out.println(map.get("Java"));
+```
+- All these operations are Atomic, they are all thread-safe without locks
+
+```java
+map.putIfAbsent(key, value);
+map.compute(key, fn);
+map.computeIfAbsent(key, fn);
+map.computeIfPresent(key, fn);
+map.merge(key, value, fn);
+```
+
+### SynchronizedMap
+- `Collections.synchronizedMap(Map<K,V>)` returns a thread-safe wrapper around an existing Map by synchronizing every public operation on a Single Global Lock.
+- A single global lock means there is one shared lock object guarding the entire data structure, so only one thread at a time can access or modify it
+- `synchronizedMap` was introduced to retrofit thread safety onto any `Map`. It does not change the underlying map’s structure and only simply adds synchronization around all operations.
+- Order - same as wrapped map 
+- Duplicates - Keys cannot be duplicate, value can be duplicate.
+- Nulls -  same as wrapped map
+- Thread-safety - Thread safe.
+#### Problems
+- Even though the map is synchronized, iteration is NOT automatically safe.
+- Iterators are fail-fast.
+- Structural modification during iteration must be guarded.
+- There is no Read concurrency or Write scalability.
+```java
+Map<String, Integer> map =
+Collections.synchronizedMap(new HashMap<>());
+
+map.put("Java", 1);
+map.put("Spring", 2);
+
+// Safe access
+System.out.println(map.get("Java"));
+```
 ## Queue
 - The `Queue` interface (in `java.util`) represents a collection designed to hold elements prior to processing — typically following a FIFO (First-In-First-Out) order.
 - Order - FIFO
