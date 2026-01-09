@@ -2192,6 +2192,84 @@ PriorityQueue<Task> tasks =
     - `LinkedBlockingDeque` (concurrent)
 
 ### ArrayDeque 
+- `ArrayDeque<E>` is a resizable-array implementation of the Deque interface that supports fast insertion and removal at both ends.
+- Order - Insertion Order 
+- Duplicates - Allowed
+- Nulls - not allowed 
+- Thread-safety - not thread safe
+- Underlying structure - Resizable circular array.
+- Primary purpose - Double-ended queue (acts as queue + stack), replaces Stack and LinkedList. 
+
+```java
+Deque<Integer> dq = new ArrayDeque<>();
+
+dq.addLast(10);   // queue-style
+dq.addLast(20);
+dq.addFirst(5);   // deque-style
+
+System.out.println("Deque: " + dq);
+
+System.out.println("removeFirst: " + dq.removeFirst()); // 5
+System.out.println("removeLast: " + dq.removeLast());   // 20
+
+dq.push(100);     // stack-style
+System.out.println("pop: " + dq.pop());                 // 100
+```
+## Legacy Collections
+- Legacy collections are early Java collection classes (pre–Java 1.2) that existed before the modern Collections Framework.
+- They were later retrofitted to work with newer interfaces, but their design constraints remain.
+- Legacy Collections were designed to be simple and thread safe by default, at that time concurrency was primitive, CPUs were single core and synchronisation cost was acceptable.
+- But these Legacy collections became performance bottlenecks with the introduction of Multi-core CPUs and High-throughput servers, and the need for fine-grained concurrency.
+
 ### Hashtable
-### Stack 
+- `Hashtable<K,V>` is a legacy, thread-safe Map implementation that synchronizes every method using a single global lock. It extends `Dictionary` which itself is legacy and obsolete. 
+```java
+public class Hashtable<K,V>
+    extends Dictionary<K,V>
+```
+- Order - No guarantee 
+- Duplicates - Keys not allowed, values allowed
+- Nulls - not allowed for both key and value
+- Thread-safety - thread safe
+    - uses a single global lock and therefore not scalable.
+- Use HashMap instead and ConcurrentHashMap if you need thread safety.
 ### Vector 
+- `Vector<E>` is a legacy, resizable-array implementation of List that is thread-safe by synchronizing every public method.
+- Order - Insertion Order 
+- Duplicates - Allowed
+- Nulls - Allowed 
+- Thread-safety - thread safe
+    - uses a single global lock and therefore not scalable.
+- Underlying Structure - Resizable Array
+- Use ArrayList instead and CopyOnWriteArrayList or Collections.synchronizedList if you need thread safety.
+```java
+List<String> list = new Vector<>();
+
+list.add("Java");
+list.add("Spring");
+list.add("Kafka");
+
+for (String s : list) {
+    System.out.println(s);
+}
+```
+### Stack 
+- `Stack<E>` is a legacy collection that represents a Last-In, First-Out (LIFO) data structure
+- Order - LIFO 
+- Duplicates - Allowed
+- Nulls - Allowed 
+- Thread-safety - thread safe
+    - uses a single global lock and therefore not scalable.
+- Underlying Structure - Resizable Array (Vector)
+- Use ArrayDeque instead and ConcurrentLinkedDeque or LinkedBlockingDeque if you need thread safety.
+```java
+Stack<Integer> stack = new Stack<>();
+
+stack.push(10);
+stack.push(20);
+stack.push(30);
+
+System.out.println(stack.peek()); // 30
+System.out.println(stack.pop());  // 30
+System.out.println(stack.pop());  // 20
+```
