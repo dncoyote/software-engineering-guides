@@ -1883,6 +1883,27 @@ null
 ```
 
 ### TreeSet
+- TreeSet is a Set implementation that stores elements in a sorted order.
+- Order - Sorted order 
+- Duplicates - Not Allowed
+- Nulls - Not Allowed 
+- Thread-safety - not thread safe.
+- Primary purpose - Best for range-based queries.
+- Underlying Structure - Red Black Tree
+
+```java
+Set<Integer> set = new TreeSet<>();
+
+set.add(40);
+set.add(10);
+set.add(30);
+set.add(20);
+set.add(20); // duplicate → ignored
+
+for (int n : set) {
+    System.out.println(n);
+}
+```
 
 ## Map
 - The `Map<K,V>` interface (in `java.util`) represents a collection that maps unique keys to values. 
@@ -1915,7 +1936,7 @@ for (Map.Entry<Integer, String> entry : map.entrySet()) {
 - Nulls - One null key, many null values
     - null is handled as a special case mapped to bucket index 0.
 - Thread-safety - not thread safe.
-    - No synchronization on critical operations liek `put()`, `get()`, `remove()`, `resize()`, etc.
+    - No synchronization on critical operations like `put()`, `get()`, `remove()`, `resize()`, etc.
 - Primary purpose - Fast Key-value lookup, used in caches, config maps, lookup tables etc.
 
 #### Internal Working
@@ -1957,8 +1978,96 @@ for (Map.Entry<Integer, String> entry : map.entrySet()) {
     - By the pigeonhole principle, collisions must occur.
 
 ### LinkedHashMap
+- `LinkedHashMap<K,V>` is a hash-based Map implementation that maintains a predictable iteration order
+- Order - Insertion Order (default)/Access Order (LRU Cache) 
+- Duplicates - Keys cannot be duplicate, value can be duplicate.
+- Nulls - One null key, many null values
+- Thread-safety - not thread safe.
+- Primary purpose - Order/LRU.
+- Underlying Structure - Hash table + Doubly Linked List 
+
+```java
+Map<String, String> map = new LinkedHashMap<>();
+
+map.put("A", "Java");
+map.put("B", "Spring");
+map.put("C", "Kafka");
+map.put("B", "Spring Boot"); // overwrite value
+
+for (Map.Entry<String, String> e : map.entrySet()) {
+    System.out.println(e.getKey() + " => " + e.getValue());
+}
+```
+
+#### LRU Cache
+
 ### TreeMap
+- `TreeMap<K,V>` is a `Map` implementation that stores entries in a sorted order of keys
+- Order - Sorted by Keys 
+    - Natural ordering (`Comparable`)
+    - Custom ordering (`Comparator`)
+- Duplicates - Keys cannot be duplicate, value can be duplicate.
+- Nulls - One null key, many null values
+- Thread-safety - not thread safe.
+- Primary purpose - ordering + navigation
+- Underlying Structure - Red Black Tree 
+
+```java
+Map<Integer, String> map = new TreeMap<>();
+
+map.put(40, "Forty");
+map.put(10, "Ten");
+map.put(30, "Thirty");
+map.put(20, "Twenty");
+map.put(20, "Twenty Updated"); // overwrites
+
+for (Map.Entry<Integer, String> e : map.entrySet()) {
+    System.out.println(e.getKey() + " => " + e.getValue());
+}
+// Output will always be sorted by keys
+10 => Ten
+20 => Twenty Updated
+30 => Thirty
+40 => Forty
+
+```
+- But if TreeMap is created for `User` as keys - `Map<User, String> map = new TreeMap<>()`
+- Then User must implement Comparable for natural ordering or must use Comparator for custom ordering.
+
+```java
+//Comparable
+class User implements Comparable<User> {
+    int id;
+
+    User(int id) {
+        this.id = id;
+    }
+
+    @Override
+    public int compareTo(User other) {
+        return Integer.compare(this.id, other.id);
+    }
+}
+//Comparator
+
+Map<User, String> map =
+    new TreeMap<>(Comparator.comparingInt(u -> u.id));
+
+// and then we use
+
+Map<User, String> map = new TreeMap<>();
+map.put(new User(2), "B");
+map.put(new User(1), "A");
+map.put(new User(3), "C");
+```
 ### ConcurrentHashMap 
+- `ConcurrentHashMap<K,V>` is a thread-safe Map implementation designed for high concurrency without locking the entire map.
+- Order - Not guaranteed 
+- Duplicates - Keys cannot be duplicate, value can be duplicate.
+- Nulls - Not allowed for keys and values
+- Thread-safety - Thread safe.
+- Primary purpose - Concurrent HashMap allows concurrent reads and writes using fine-grained locking and lock-free reads, providing high scalability without global synchronization
+- Underlying Structure - Hash Table + synchronization 
 
 ## Queue
 - The `Queue` interface (in `java.util`) represents a collection designed to hold elements prior to processing — typically following a FIFO (First-In-First-Out) order.
