@@ -2387,6 +2387,8 @@ try {
 - This is used to handle Business rule violations and Programming/Domain errors.
 - We can create Unchecked Custom Exception by extending `RuntimeException`.
 - No need to use `throws`.
+
+- Best practice
 ```java
 public class MyException extends RuntimeException {
 
