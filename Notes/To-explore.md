@@ -29,3 +29,7 @@
 - Event Sourcing with Databases
 - Materialized Views
 - Connection Pooling
+
+### Core Java
+- Diamond Problems
+- multi level inheritance

@@ -2273,3 +2273,129 @@ System.out.println(stack.peek()); // 30
 System.out.println(stack.pop());  // 30
 System.out.println(stack.pop());  // 20
 ```
+
+## Fail-fast vs Fail-safe iterators 
+- An iterator provides a way to traverse elements of a collection without exposing its internal structure.
+- But what happens if the collection is modified while it’s being iterated?
+- Fail-fast Iterator
+    - Fail-fast iterators immediately throw `ConcurrentModificationException` if the collection is structurally modified during iteration.
+    - Fail-fast iterators are used in `ArrayList`, `HashMap`, `HashSet`, `LinkedList`, `TreeMap`, `TreeSet`.
+    - They are not thread safe.
+    - The iterator does not see the latest data.
+    - Performance is fast.
+    - Memory overhead is low.
+- Fail-safe Iterator
+    - Fail-safe iterators do NOT throw exceptions if the collection is modified during iteration
+    - Fail-safe iterators are used in `CopyOnWriteArrayList`, `CopyOnWriteArraySet`, `ConcurrentHashMap`, `ConcurrentLinkedQueue`.
+    - They are thread safe.
+    - The iterator might partially see the latest data, but its not affected by concurrent modifications.
+    - Performance is slow.
+    - Memory overhead is higher.
+    - There are two common strategies
+        - Snapshot copy
+        - Weakly consistent iteration
+
+## Exception Handling
+- Exception handling in Java is a mechanism to handle runtime errors and exceptional situations that may occur during the execution of a program.
+- An exception is an event that disrupts the normal flow of a program during runtime.
+- It is a way to gracefully recover from errors and prevent the program from crashing.
+- Java provides a built-in mechanism to handle exceptions using the try-catch block.
+- The try block contains the code that may cause an exception, and the catch block handles the exception if it occurs. 
+```java
+try {
+    int result = 10 / 0;
+} catch (ArithmeticException e) {
+    System.out.println("Cannot divide by zero");
+} finally {
+    System.out.println("Always runs");
+}
+```
+## Types of Exceptions
+
+```
+Object
+ └── Throwable
+     ├── Error
+     └── Exception
+         ├── Checked Exceptions
+         └── RuntimeException (Unchecked)
+```
+## Checked Exceptions (Compile-Time Exceptions)
+- Exceptions that must be either caught or declared using throws.
+- Checked exceptions are exceptions that the Java compiler requires you to handle explicitly in your code.
+- These exceptions are typically related to external factors that your code may encounter, such as file I/O, network operations, or database connections.
+- You are required to either catch and handle checked exceptions using a try-catch block or declare that your method may throw the exception using the throws clause.
+- `IOException` `SQLException` `ClassNotFoundException`
+
+```java
+// throws
+void readFile() throws IOException {
+    Files.readAllLines(Path.of("data.txt"));
+}
+
+// try-catch
+try {
+    Files.readAllLines(Path.of("data.txt"));
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+## Unchecked Exceptions (Runtime Exceptions)
+- Exceptions that occur due to programming errors or invalid assumptions.
+- Unchecked exceptions, also known as runtime exceptions, are exceptions that the compiler does not require you to catch or declare explicitly.
+- They typically represent programming errors, such as dividing by zero, accessing an array index out of bounds, or attempting to call a method on a null object reference.
+- Unchecked exceptions are subclasses of `RuntimeException`.
+- You can catch and handle them, but it is not required by the compiler. Most of the time, they indicate bugs in your code that should be fixed.
+- `NullPointerException`, `IllegalArgumentException`, `IllegalStateException`, `ArrayIndexOutOfBoundsException`
+
+```java
+int x = list.get(10); // IndexOutOfBoundsException
+```
+
+## Custom Exception
+- A custom exception is a user-defined exception class created to represent application-specific or domain-specific error conditions.
+- Custom exceptions can be created by extending the Exception class or one of its subclasses like RuntimeException.
+- By creating custom exceptions, developers can define their own exceptions for specific use cases, improving code clarity and allowing for more targeted exception handling.
+#### Checked Custom Exception 
+- This is used to handle recoverable conditions.
+- We can create Checked Custom Exception by extending `Exception`.
+- Caller must handle it using `try-catch` block.
+```java
+// Checked Custom Exception
+class InvalidFileFormatException extends Exception {
+
+    public InvalidFileFormatException(String message) {
+        super(message);
+    }
+}
+
+// usage
+void readFile(String file) throws InvalidFileFormatException {
+    if (!file.endsWith(".txt")) {
+        throw new InvalidFileFormatException("Only .txt files supported");
+    }
+}
+
+//handling
+try {
+    readFile("data.pdf");
+} catch (InvalidFileFormatException e) {
+    System.out.println(e.getMessage());
+}
+```
+#### Unchecked Custom Exception 
+- This is used to handle Business rule violations and Programming/Domain errors.
+- We can create Unchecked Custom Exception by extending `RuntimeException`.
+- No need to use `throws`.
+```java
+public class MyException extends RuntimeException {
+
+    public MyException(String message) {
+        super(message);
+    }
+
+    public MyException(String message, Throwable cause) {
+        super(message, cause);
+    }
+}
+```
