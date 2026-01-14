@@ -2386,8 +2386,22 @@ try {
 #### Unchecked Custom Exception 
 - This is used to handle Business rule violations and Programming/Domain errors.
 - We can create Unchecked Custom Exception by extending `RuntimeException`.
-- No need to use `throws`.
+- No need to use `throws`. `try-catch` not enforced.
 
+```java
+//exception
+class InvalidAgeException extends RuntimeException {
+    InvalidAgeException(String msg) {
+        super(msg);
+    }
+}
+//usage
+void register(int age) {
+    if (age < 18) {
+        throw new InvalidAgeException("Age must be >= 18");
+    }
+}
+```
 - Best practice
 ```java
 public class MyException extends RuntimeException {
@@ -2399,5 +2413,92 @@ public class MyException extends RuntimeException {
     public MyException(String message, Throwable cause) {
         super(message, cause);
     }
+}
+```
+## Throw
+- `throw` is used to explicitly create and raise an exception at a specific point in the code.
+- It immediately stops normal execution and transfers control to the nearest matching `catch` block (or propagates up the call stack).
+- `throw` can also be used inside a `catch`.
+```java
+throw new IllegalArgumentException("Invalid input"); // action
+
+throw new InvalidAgeException("Age must be >= 18");
+```
+
+## Throws
+- `throws` keyword is used in method signatures to declare that a method might throw certain types of checked exceptions.
+- When a method declares that it throws an exception, it means that the method might encounter a situation that could cause an exception to be thrown, and that the method is not able to handle that exception on its own. Instead, the method declares that it might throw the exception, and it is the responsibility of the calling code to handle the exception.
+- Checked Exception require `throws`, then the called must catch it or declare it again.
+- Unchecked Exception do not require `throws` and is optional.
+```java
+
+public void readFromFile(String filename) throws IOException {
+// code to read from the file
+    throw new IOException();      // action
+}
+
+```
+## `try-catch` block
+- A try–catch block is used to handle exceptions at runtime by separating normal execution from error-handling logic.
+- Code that might fail goes in `try`
+- Recovery/handling logic goes in `catch`
+- Optional `finally` runs regardless
+- In multiple `catch` blocks, parent class catch must be last.
+
+```java
+try {
+    int x = 10 / 0;
+} catch (ArithmeticException e) {
+    System.out.println("Cannot divide by zero");
+}
+
+//Multiple catch block
+try {
+    riskyOperation();
+} catch (FileNotFoundException e) {
+    handleFileIssue();
+} catch (IOException e) {
+    handleIOIssue();
+} catch (Exception e) {
+    handleGeneric();
+}
+
+//invalid
+catch (Exception e) {}
+catch (IOException e) {} // unreachable
+
+//Multi-catch
+try {
+    process();
+} catch (IOException | SQLException e) {
+    log(e);
+}
+```
+
+## finally
+- `finally` is a block that executes regardless of whether an exception is thrown or caught, and is primarily used for cleanup logic, releasing locks.
+- `finally` is not executed in rare cases like `System.exit(0)`, JVM crash, Power failure.
+```java
+static int test() {
+    try {
+        return 1;
+    } finally {
+        System.out.println("finally runs");
+    }
+}
+```
+
+## `try-with-resources`
+- `try-with-resources` is a Java construct that automatically closes resources after use, eliminating the need for an explicit finally block.
+- Any object that implements `Autocloseable` qualifies as a resource.
+
+```java
+try (BufferedReader br =
+         new BufferedReader(new FileReader("data.txt"))) {
+
+    System.out.println(br.readLine());
+
+} catch (IOException e) {
+    e.printStackTrace();
 }
 ```
