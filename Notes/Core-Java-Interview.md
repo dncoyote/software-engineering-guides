@@ -1638,8 +1638,21 @@ for (String name : new ArrayList<String>()) {
 - `Iterator` is another interface (`java.util`) that provides a cursor-like mechanism to iterate (traverse) through elements of a collection one by one. It is returned by the `iterator()` method of any class that implements `Iterable`.
 - So `Iterable` return an `Iterator` to traverse the collection sequentially.
 
+### Collections
+- `Collections` is a utility class that provides static helper methods to operate on collections.
+- It cannot be instantiated and only contains static methods.
+- It provides operations like sorting, searching, synchronization wrappers, immutable wrappers.
+```java
+Collections.sort(list);
+Collections.reverse(list);
+Collections.max(collection);
+Collections.min(collection);
+Collections.synchronizedList(list);
+Collections.unmodifiableList(list);
+```
+
 ### Collection 
-- The Collection interface (in `java.util`) represents a group of individual objects — known as elements.
+- `Collection<E>` is the root interface of the Java Collections Framework (except Map).
 - It defines the common methods that all collections (except `Map`) share.
 - So every `List`, `Set`, and `Queue` class inherits all the `Collection` methods.
 - Only `Map` stands outside — it’s not a subtype of `Collection`.
