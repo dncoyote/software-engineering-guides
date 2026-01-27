@@ -13,6 +13,15 @@
     9. Polymorphism (compile-time & runtime)
     10. Has-a vs Is-a
     11. Favoring delegation
+
+## LLD
+- Low-Level Design (LLD) is the process of designing how individual classes, objects, methods, and modules in a software system will work together to fulfill business and system requirements.
+- It is the translation of the High-Level Design (HLD) into actual code-level architecture using OOP principles, design patterns, class diagrams, and real-world programming constructs.
+#### Characteristics
+- LLD bridges the Gap Between Architecture and Code.
+- It encodes Domain Knowledge as Object Models.
+- It enables Scalability and Maintainability, and improves Testability.
+
 # OOP Basics
 ## Classes and Objects
 - A <b>class</b> is a blueprint or template that defines the structure and behavior (data and methods) of real-world entities.
