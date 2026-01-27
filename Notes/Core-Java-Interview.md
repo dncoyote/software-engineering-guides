@@ -2515,3 +2515,396 @@ try (BufferedReader br =
     e.printStackTrace();
 }
 ```
+
+## Lambda Expression
+- A Lambda Expression is a compact piece of code that is used to represent an anonymous function (a function without a name). 
+- They  can be passed as an argument to a method or stored as a variable.
+- It consists of parameters, the arrow operator, and a body.
+- Lambda Expression allow you to express instances of single-method interfaces (functional interfaces) more concisely. 
+- Lambda expressions make your code more readable and expressive, especially when working with functional programming constructs.
+- Lambda expressions are particularly useful in scenarios where you need to pass behavior as an argument, such as in the case of functional interfaces. 
+- They lead to more concise and expressive code, making your Java programs more readable and maintainable.
+
+```
+(parameters) -> expression
+
+ //or
+
+(parameters) -> {
+    // code block
+    // multiple statements
+    return result;
+}
+
+```
+- Every lambda expression requires a functional interface. 
+```java
+@FunctionalInterface
+interface MyFunction {
+    void myMethod(String message);
+}
+
+public class LambdaExample {
+    public static void main(String[] args) {
+        // Lambda expression implementation
+        MyFunction myFunction = (message) -> System.out.println("Hello, " + message);
+
+        // Calling the method using the lambda expression
+        myFunction.myMethod("World");
+    }
+}
+
+
+public class HelloWorld {
+    public static void main(String[] args) {
+        Runnable hello = () -> System.out.println("Hello, world!");
+        hello.run();
+    }
+}
+
+```
+
+## Functional Interface
+- A functional interface is an interface that has exactly ONE abstract method.
+- Functional interfaces are also known as single abstract method (SAM) interfaces.
+- They are used to support the lambda expressions and functional programming style
+- They can have any number of default methods or static methods.
+- It's a good practice to annotate a functional interface with `@FunctionalInterface`. This annotation serves as a marker, and if a developer accidentally adds more than one abstract method, the compiler will generate an error.
+- Built-in Functional Interfaces
+    - `Predicate<T>` -> Condition checks
+    - `Function<T, R>` -> Transform input to provide output
+    - `Consumer<T>` -> Consumer input, no return
+    - `Supplier<T>` -> Supply values
+    - `Runnable`
+    - `Callable<V>`
+
+```java
+@FunctionalInterface
+interface MyFunctionalInterface {
+    // Abstract method
+    void myMethod();
+
+    // Default method
+    default void myDefaultMethod() {
+        System.out.println("Default method implementation");
+    }
+
+    // Static method
+    static void myStaticMethod() {
+        System.out.println("Static method implementation");
+    }
+}
+
+public class LambdaExample {
+    public static void main(String[] args) {
+        // Lambda expression for the abstract method
+        MyFunctionalInterface myFunction = () -> System.out.println("Lambda expression for myMethod");
+
+        // Calling the abstract method using the lambda expression
+        myFunction.myMethod();
+
+        // Calling the default method
+        myFunction.myDefaultMethod();
+
+        // Calling the static method
+        MyFunctionalInterface.myStaticMethod();
+    }
+}
+
+
+//Output
+Lambda expression for myMethod
+Default method implementation
+Static method implementation
+
+// Functional interface implementation without lambda expression
+interface MyFunctionalInterface {
+    void myMethod();
+}
+
+// Concrete class implementing the interface
+class MyImplementation implements MyFunctionalInterface {
+    @Override
+    public void myMethod() {
+        System.out.println("Implementation of myMethod");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        // Create an instance of the concrete class
+        MyImplementation myObject = new MyImplementation();
+
+        // Call the implemented method
+        myObject.myMethod();  // Output: Implementation of myMethod
+    }
+}
+```
+
+## Default Method
+- Default Method is a method defined within an interface that provides a default implementation
+- Default methods support the evolution of interfaces over time. As the requirements of an interface change, new methods can be added with default implementations, allowing for a more flexible and extensible design.
+- The implementing classes can override default methods.
+```java
+class CardPayment implements PaymentProcessor {
+    @Override
+    public void log(double amount) {
+        System.out.println("Card log: ₹" + amount);
+    }
+
+    @Override
+    public void process(double amount) {
+        System.out.println("Card payment: ₹" + amount);
+    }
+}
+```
+- Default methods can provide sensible default behavior for methods that don't need to be implemented by every implementing class.
+- When new default methods are introduced in an interface, existing classes implementing the interface won't be affected. They can still use the default method if needed. 
+```java
+public interface MyInterface {
+    default void myMethod() {
+        System.out.println("This is a default method.");
+    }
+}
+
+```
+- Default methods enable a form of multiple inheritance in Java interfaces. If a class implements multiple interfaces that have conflicting method signatures, the class must provide an implementation for the conflicting methods. However, if one of the conflicting methods is a default method, the conflict is resolved, and the class inherits the default implementation.
+
+```java
+//problem
+interface A {
+    default void show() {
+        System.out.println("A");
+    }
+}
+
+interface B {
+    default void show() {
+        System.out.println("B");
+    }
+}
+
+class C implements A, B {
+    // ❌ Compile-time error: ambiguous show()
+}
+
+//solution
+class C implements A, B {
+    @Override
+    public void show() {
+        A.super.show(); // or B.super.show()
+    }
+}
+```
+- Default method is different from Default access modifier which is when a class, method, or variable is declared with no access modifier, it has `default` or "package-private" access. This means that it can only be accessed by classes within the same package.
+
+```java
+class MyClass {
+    int myVariable; // default access modifier
+}
+```
+## `Predicate<T>`
+## `Function<T, R>`
+## `Consumer<T>`
+## `Supplier<T>` 
+## Streams API
+- Stream API in Java provides a way to process collections of objects in a declarative and functional style.
+
+```java
+// before java 8
+List<Integer> result = new ArrayList<>();
+for (Integer n : numbers) {
+    if (n % 2 == 0) {
+        result.add(n * 2);
+    }
+}
+
+//using Stream API
+List<Integer> result =
+    numbers.stream()
+           .filter(n -> n % 2 == 0)
+           .map(n -> n * 2)
+           .toList();
+```
+- A stream always has 3 parts
+```
+Source → Intermediate Operations → Terminal Operation
+```
+```java
+numbers.stream()        // source
+       .filter(n -> n > 10)   // intermediate
+       .map(n -> n * 2)       // intermediate
+       .forEach(System.out::println); // terminal
+```
+- Streams rely heavily on functional interfaces such as `Predicate`, `Function`, `Consumer`, `Supplier`, and `Comparator`, which enable the use of lambda expressions and method references to specify behavior.
+
+#### Intermediate Operations 
+- Intermediate operations such as `filter`, `map`, `flatMap`, `distinct`, `sorted`, etc. transform the elements of a stream and return a new stream.
+##### `filter`
+- `filter` is used for Selecting/Removing elements.
+- It uses `Predicate<T>` that returns a boolean.
+```java
+List<Integer> numbers = List.of(3, 7, 2, 9, 4, 7, 10);
+//even numbers
+List<Integer> evens =
+    numbers.stream()
+           .filter(n -> n % 2 == 0)
+           .toList();
+//[2, 4, 10]
+```
+##### `map`
+- `map` is used for transforming elements.
+- It uses `Function<T, R>` and transforms each element into something else.
+```java
+List<Integer> numbers = List.of(3, 7, 2, 9, 4, 7, 10);
+//square each number
+List<Integer> squares =
+    numbers.stream()
+           .map(n -> n * n)
+           .toList();
+// [9, 49, 4, 81, 16, 49, 100]
+```
+##### `flatMap`
+- `flatMap` is used to flatten nested structures.
+- It "flattens" the result, producing a single stream of the concatenated results.
+```java
+List<List<Integer>> numbers = Arrays.asList(
+    Arrays.asList(1, 2, 3),
+    Arrays.asList(4, 5, 6),
+    Arrays.asList(7, 8, 9)
+);
+
+List<Integer> flattenedNumbers = numbers.stream()
+                                       .flatMap(List::stream)
+                                       .collect(Collectors.toList());
+
+// Result: [1, 2, 3, 4, 5, 6, 7, 8, 9]
+```
+##### `sorted`
+- `sorted` is for ordering the elements.
+```java
+// natural order
+List<Integer> sorted =
+    numbers.stream()
+           .sorted()
+           .toList();
+// [2, 3, 4, 7, 7, 9, 10]
+
+// custom order
+List<Integer> desc =
+    numbers.stream()
+           .sorted((a, b) -> b - a)
+           .toList();
+// desc = [10, 9, 7, 7, 4, 3, 2]
+```
+#### Terminal Operations 
+- Terminal operations such as `forEach`, `collect`, `reduce`, `count`, `min`, `max`, `findFirst`, `anyMatch`, `allMatch`, `noneMatch`, etc. produce a result or side-effect and terminate the stream.
+
+##### `forEach`
+- `forEach` is a terminal operation for consuming elements.
+```java
+numbers.stream()
+       .forEach(n -> System.out.println(n));
+```
+
+##### `collect`
+- `collect` is used to convert stream to a result.
+- It is most commonly used to collect stream into `List`, `Set`, `Map`.
+
+```java
+List<Integer> result =
+    numbers.stream()
+           .filter(n -> n > 5)
+           .collect(Collectors.toList());
+```
+##### `reduce`
+- `reduce` is used to combine stream into one value.
+
+```java
+List<Integer> numbers = List.of(3, 7, 2, 9, 4, 7, 10);
+//reduce
+int sum =
+    numbers.stream()
+           .reduce(0, (a, b) -> a + b);
+//42 (sum of all elements)
+```
+##### `count`
+- `count` is used to find the number of elements.
+
+```java
+List<Integer> numbers = List.of(3, 7, 2, 9, 4, 7, 10);
+// count
+long count =
+    numbers.stream()
+           .filter(n -> n > 5)
+           .count();
+// 4
+```
+##### `min`
+- `min` returns smallest element as `Optional<T>`.
+```java
+List<Integer> numbers = List.of(3, 7, 2, 9, 4, 7, 10);
+// min 
+Optional<Integer> min =
+    numbers.stream().min(Integer::compareTo);
+// 2 
+```
+
+##### `findFirst`
+- `findFirst` returns the first element as `Optional<T>`.
+```java
+List<Integer> numbers = List.of(3, 7, 2, 9, 4, 7, 10);
+// findFirst
+Optional<Integer> first =
+    numbers.stream()
+           .filter(n -> n > 5)
+           .findFirst();
+
+// 7 
+```
+
+##### `anyMatch`
+- `anyMatch` returns boolean based on a provided condition.
+
+```java
+List<Integer> numbers = List.of(3, 7, 2, 9, 4, 7, 10);
+// anyMatch 
+boolean hasEven =
+    numbers.stream()
+           .anyMatch(n -> n % 2 == 0);
+// true 
+```
+###### Examples 
+```java
+
+List<String> list = Arrays.asList("apple", "banana", "cherry", "date");
+
+// create a stream from the list
+Stream<String> stream = list.stream();
+
+// filter the stream to only include elements starting with "a"
+Stream<String> filteredStream = stream.filter(s -> s.startsWith("a"));
+//find element using filter
+String firstLongFruit = fruits.stream()
+    .filter(fruit -> fruit.length() > 6)
+    .findFirst()
+    .orElse("No long fruit found");
+
+// map the filtered stream to uppercase strings
+Stream<String> mappedStream = filteredStream.map(String::toUpperCase);
+// Map elements
+List<Integer> fruitLengths = fruits.stream()
+    .map(String::length)
+    .toList();
+System.out.println("Fruit lengths: " + fruitLengths); // Output: [5, 6, 6, 4, 10]
+
+//Reduce elements
+int sum = fruits.stream()
+    .mapToInt(String::length)
+    .sum();
+System.out.println("Total length: " + sum); // Output: 31
+
+// print the mapped stream to the console
+mappedStream.forEach(System.out::println);
+
+```
