@@ -2578,7 +2578,7 @@ public class HelloWorld {
     - `Runnable`
     - `Callable<V>`
 
-[Code](src/javaguides/functionalInterface/usage/PaymentApp.java)
+[Code](/src/javaguides/functionalInterface/usage/PaymentApp.java)
 ```java
 @FunctionalInterface
 interface MyFunctionalInterface {
