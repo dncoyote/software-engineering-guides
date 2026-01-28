@@ -2705,6 +2705,24 @@ class MyClass {
 }
 ```
 ## `Predicate<T>`
+- A Predicate is a functional interface in Java that represents a boolean-valued function of one argument.
+- It represents a boolean-valued function that takes an argument and returns a boolean result.
+- Predicates enables functional-style filtering and works with Streams and Collections.
+
+[Code](/src/javaguides/predicate/PredicateDemo.java)
+```java
+List<Integer> numbers = List.of(1, 2, 3, 4, 5, 6);
+
+Predicate<Integer> isEven = n -> n % 2 == 0;
+
+List<Integer> evens = numbers.stream()
+                             .filter(isEven)
+                             .toList();
+
+System.out.println(evens); // [2, 4, 6]
+```
+- `filter()` accepts Predicate.
+
 ## `Function<T, R>`
 ## `Consumer<T>`
 ## `Supplier<T>` 
@@ -2909,3 +2927,83 @@ System.out.println("Total length: " + sum); // Output: 31
 mappedStream.forEach(System.out::println);
 
 ```
+
+## Multithreading 
+- Multithreading is running multiple independent paths of execution (threads) within the same process (the JVM), so work can happen concurrently
+- A thread will share the same heap memory with other threads but has its own stack.
+#### Ways of creating a thread
+##### Extend `Thread` class
+```java
+class MyThread extends Thread {
+    @Override
+    public void run() {
+        System.out.println("Running in: " + Thread.currentThread().getName());
+    }
+}
+
+public class Demo {
+    public static void main(String[] args) {
+        Thread t = new MyThread();
+        t.start(); // IMPORTANT: start() creates a new thread, run() doesn't
+    }
+}
+```
+##### Implement `Runnable`
+```java
+public class Demo {
+    public static void main(String[] args) {
+        Runnable task = () -> {
+            System.out.println("Running in: " + Thread.currentThread().getName());
+        };
+
+        Thread t = new Thread(task, "worker-1");
+        t.start();
+    }
+}
+```
+##### Use `ExecutorService`
+```java
+import java.util.concurrent.*;
+
+public class PoolDemo {
+    public static void main(String[] args) throws Exception {
+        ExecutorService pool = Executors.newFixedThreadPool(4);
+
+        // Fire-and-forget tasks (Runnable)
+        pool.submit(() -> System.out.println("Task A on " + Thread.currentThread().getName()));
+
+        // Tasks that return a result (Callable)
+        Future<Integer> f = pool.submit(() -> 40 + 2);
+
+        System.out.println("Result = " + f.get()); // blocks until done
+
+        pool.shutdown(); // graceful shutdown
+    }
+}
+```
+## Thread
+- A thread is the smallest unit of execution inside a process.
+- They are an independent path of execution with its own call stack, running within the same process memory
+- The java application is a **process** and the **thread** lives inside the process.
+- It shared the heap area and static variables along with other threads but each thread has its own stack.
+- Threads enable multiple tasks simultaneously which improves CPU utilization and helps us to create responsive applications.
+- Without threads the server can only handle one request at a time which blocks everything.
+- Each thread has a :
+    - Call stack
+        - Local Variables
+    - Program counter
+        - where execution currently isEven
+    - Thread state
+        - running, waiting, blocked
+- In a single threaded program - Task A fully finishes, then B starts — one call stack, one thread.  
+[Code](/src/javaguides/multithreading/SingleThreadedDemo.java)
+- In a multi threaded program - Task A and Task B are fully interleaved and non-deterministic as each task runs on a different thread.
+[ThreadDemo](/src/javaguides/multithreading/ThreadDemo.java)
+[TaskThread](/src/multithreading/TaskThread.java)
+
+## `start()` vs `run()` 
+- `start()` turns a potential thread into a real concurrent thread, `run()` is jut the code that the thread executes.
+- `start()` is responsible for thread creation run `run()` is automatically called by the JVM after `start()`.
+## Thread pool 
+## Race condition 
+##  locks 
