@@ -125,6 +125,33 @@ javac HelloWorld.java
 java HelloWorld
 ```
 
+## Garbage Collection
+- Garbage Collection (GC) is the JVM’s automatic process of reclaiming memory by removing objects that are no longer reachable by any live reference in a running program.
+- In simple words: it frees memory from unused objects so you don’t have to call `free()` like in C/C++.
+- This prevents memory leaks, improve performance by eliminating `OutOfMemoryError`, GC pauses and help write scalable systems.
+- Unlike C/C++, Java automates memory management with Garbage Collection (GC)—you don’t explicitly `free()` memory.
+- GC can be called using `System.gc()`: Only a suggestion. JVM may ignore it. 
+- `finalize()`: Deprecated in Java 9. Unpredictable; use try-with-resources or Cleaner.
+- GC manages
+    - Heap only (Young Generation + Old Generation).
+    - Metaspace (class metadata) is also GC-managed, but differently.
+    - Stack cleanup is automatic when methods return.
+### Phases in Garbage Collection
+- Mark : During this phase, the garbage collector traverses all objects in the heap and marks those that are still in use. It typically starts with the root objects (objects directly accessible by the program) and recursively marks all reachable objects.
+- Sweep : In this phase, the garbage collector scans the entire heap and reclaims memory occupied by unmarked (unreachable) objects. These unmarked objects are considered garbage and are removed from memory.
+- Compact : In this phase, the garbage collector compacts the memory by moving all live (marked) objects to one contiguous block of memory, eliminating or reducing fragmentation. 
+### Generational GC model
+- Young Generation
+    - Eden space: where new objects start.
+    - Survivor spaces (S0, S1): objects surviving GC cycles.
+    - Collection here = Minor GC (fast).
+- Old (Tenured) Generation
+    - Long-lived objects promoted here.
+    - Collection here = Major GC / Full GC (slower, can pause app).
+- Metaspace (Java 8+)
+    - Stores class metadata.
+    - Managed separately from heap, but also GC’d.
+
 ## What is `public static void main(String args[])`?
 - `public`
     - Access modifier of main class.
@@ -2931,56 +2958,10 @@ mappedStream.forEach(System.out::println);
 ## Multithreading 
 - Multithreading is running multiple independent paths of execution (threads) within the same process (the JVM), so work can happen concurrently
 - A thread will share the same heap memory with other threads but has its own stack.
-#### Ways of creating a thread
-##### Extend `Thread` class
-```java
-class MyThread extends Thread {
-    @Override
-    public void run() {
-        System.out.println("Running in: " + Thread.currentThread().getName());
-    }
-}
-
-public class Demo {
-    public static void main(String[] args) {
-        Thread t = new MyThread();
-        t.start(); // IMPORTANT: start() creates a new thread, run() doesn't
-    }
-}
-```
-##### Implement `Runnable`
-```java
-public class Demo {
-    public static void main(String[] args) {
-        Runnable task = () -> {
-            System.out.println("Running in: " + Thread.currentThread().getName());
-        };
-
-        Thread t = new Thread(task, "worker-1");
-        t.start();
-    }
-}
-```
-##### Use `ExecutorService`
-```java
-import java.util.concurrent.*;
-
-public class PoolDemo {
-    public static void main(String[] args) throws Exception {
-        ExecutorService pool = Executors.newFixedThreadPool(4);
-
-        // Fire-and-forget tasks (Runnable)
-        pool.submit(() -> System.out.println("Task A on " + Thread.currentThread().getName()));
-
-        // Tasks that return a result (Callable)
-        Future<Integer> f = pool.submit(() -> 40 + 2);
-
-        System.out.println("Result = " + f.get()); // blocks until done
-
-        pool.shutdown(); // graceful shutdown
-    }
-}
-```
+- Ways of creating a thread
+    - Extend `Thread` class
+    - Implement `Runnable`
+    - Use `ExecutorService`
 ## Thread
 - A thread is the smallest unit of execution inside a process.
 - They are an independent path of execution with its own call stack, running within the same process memory
