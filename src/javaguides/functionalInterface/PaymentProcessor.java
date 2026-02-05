@@ -1,19 +1,19 @@
 package javaguides.functionalInterface;
 
 @FunctionalInterface
-public interface PaymentProcessor{
-  
-    // ✅ Single abstract method (this is the "function")
-    boolean process(double amount);
+public interface PaymentProcessor {
 
-    // ✅ Default method (allowed)
-    default void log(double amount) {
-        System.out.println("Processing payment of ₹" + amount);
-    }
+  // ✅ Single abstract method (this is the "function")
+  boolean process(double amount);
 
-    // ✅ Static method (allowed)
-    static void info() {
-        System.out.println("PaymentProcessor Functional Interface");
-    }
+  // ✅ Default method (allowed)
+  default void log(double amount) {
+    System.out.println("Processing payment of ₹" + amount);
+  }
+
+  // ✅ Static method (allowed)
+  static void info() {
+    System.out.println("PaymentProcessor Functional Interface");
+  }
 
 }

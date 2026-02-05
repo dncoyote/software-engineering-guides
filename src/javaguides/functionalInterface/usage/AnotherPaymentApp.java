@@ -2,14 +2,13 @@ package javaguides.functionalInterface.usage;
 
 import javaguides.functionalInterface.PaymentProcessor;
 
-public class AnotherPaymentApp{
+public class AnotherPaymentApp {
   public static void main(String[] args) {
-    PaymentProcessor payment = amount -> amount<5000;
+    PaymentProcessor payment = amount -> amount < 5000;
     int paymentAmount = 5000;
     payment.log(paymentAmount);
     boolean success = payment.process(paymentAmount);
 
-    System.out.println("payment status ->"+ success);
+    System.out.println("payment status ->" + success);
   }
 }
-
