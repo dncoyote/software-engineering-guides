@@ -461,6 +461,7 @@ public class Main {
 | Static fields | Yes | Yes |
 | Polymorphism | No | Yes |
 | use case| Utility, helpers, shared logic |object specific behaviour |
+
 ## System.out, System.err, System.in 
 ##### System.out 
 - It is a PrintStream that is used for writing characters or can be said it can output the data we want to write on the Command Line Interface console/terminal.  
@@ -808,6 +809,117 @@ class Dog extends Animal {
     void sound() { System.out.println("Bark"); }
 }
 ```
+
+## Method Overriding
+- Method overriding happens when a subclass provides a new implementation for a method that is already defined in its superclass.
+- It allows the subclass to customize or completely change behavior while keeping the same method signature.
+- It should have the same methods name, parameter list and return type.
+- It should not reduce visibility.
+    - If parent method is `public`, then child method must be `public`.
+    - If parent method is `protected` then child method can be `protected` or `public`.
+- It should not throw new or broader checked exceptions than parent method.
+```java
+class Parent {
+    void read() throws IOException {}
+}
+
+class Child extends Parent {
+    @Override
+    void read() throws FileNotFoundException {} // ✅ allowed (narrower)
+}
+```
+```java
+class Child2 extends Parent {
+    @Override
+    void read() throws Exception {} // ❌ broader checked exception not allowed
+}
+```
+- Final methods, static methods, private methods and constructors cannot be overridden.
+
+```java
+class Animal {
+    void sound() {
+        System.out.println("Some generic sound");
+    }
+}
+
+class Dog extends Animal {
+    @Override
+    void sound() {
+        System.out.println("Bark");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Animal a = new Dog();
+        a.sound(); // Bark (runtime polymorphism)
+    }
+}
+```
+- Even though reference type is `Animal`, the actual object (`Dog`) determines which method is called.
+- This is runtime polymorphism (dynamic dispatch).
+- Use `@Override` Annotation for clarity, it gives a compile-time error if the method doesn’t correctly override. 
+```java
+class Cat extends Animal {
+    @Override
+    void sound() { // ✅ correct override
+        System.out.println("Meow");
+    }
+}
+```
+#### Method Overriding vs Runtime Polymorphism vs Dynamic Method dispatch
+##### Method Overriding (what you write in code) 
+- Method overriding happens when a subclass provides a new implementation for a method that is already defined in its superclass.
+##### Runtime Polymorphism (what you achieve)
+- The ability of a superclass reference to point to objects of different subclasses, and the correct method implementation is chosen at runtime.
+- This is achieved through method overriding.
+##### Dynamic Method Dispatch (how JVM actually does this) 
+- The mechanism inside the JVM that makes runtime polymorphism possible.
+- When an overridden method is called through a superclass reference, Java uses dynamic method dispatch to determine which version to execute.
+- The method call is resolved dynamically at runtime, not statically at compile time.
+
+## Method Overloading
+- Method overloading allows multiple methods with the same name but different parameter lists, enabling compile-time polymorphism 
+
+```java
+class Calculator {
+
+    int add(int a, int b) {
+        return a + b;
+    }
+
+    double add(double a, double b) {
+        return a + b;
+    }
+
+    int add(int a, int b, int c) {
+        return a + b + c;
+    }
+}
+```
+- Valid ways to overloading
+    - Different number of parameters.
+    - Different parameter types.
+    - Different parameter order.
+```java
+void log(String msg)
+void log(String msg, int level)
+
+    
+void process(int x)
+void process(double x)
+
+
+void draw(int x, double y)
+void draw(double y, int x)
+```
+- Simply changing the return type is not a valid way to overload.
+```java
+int add(int a, int b)
+double add(int a, int b) // ❌ compile-time error
+```
+
 
 ## Constructors
 - A constructor in Java is a special block of code used to initialize an object when it is created.
