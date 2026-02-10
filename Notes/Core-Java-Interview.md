@@ -983,6 +983,7 @@ Person p2 = new Person("Alice");
 Person p3 = new Person("Bob", 25);
 ```
 ##### Copy Constructor
+- Copy constructor is a constructor that creates a new object by copying the state of another object of the same class.
 - Used to copy values from one object to another. 
 ```java
 class Student {
@@ -992,8 +993,12 @@ class Student {
     Student(String n, int a) { name = n; age = a; }
     Student(Student s) { name = s.name; age = s.age; } // copy constructor
 }
-```
 
+// usage
+Student s1 = new Student();
+Student s2 = new Student(s1) // s2 is a copy of s1
+```
+- Copy Constructors create a new object and does not reference the same object.
 #### Constructor Chaining
 - Constructor Chaining is the process of calling one constructor from another within the same class (using `this()`) or from the parent class (using `super()`).
 - It ensures that when an object is created, all relevant constructors are executed in sequence.
@@ -1043,11 +1048,45 @@ class Order {
 ```
 - No matter how you construct an Order, it always starts with "NEW". This prevents cases where some constructors forget to set status.
 
+## `super` keyword 
+- `super` is a reference keyword that refers to the immediate parent class object.
+- `super` is used for
+    - Accessing parent class variables.
+    - Calling parent class methods overridden by child.
+    - Invoking parent class constructors.
+- `super()` or `super.method()` must be the first statement and `super()` cannot be used outside constructors. 
+
+```java
+class BaseController {
+    void init() {
+        System.out.println("Base init");
+    }
+}
+
+class UserController extends BaseController {
+    @Override
+    void init() {
+        super.init(); // important!
+        System.out.println("User init");
+    }
+}
+```
 ## `this` keyword
 - `this` is a reference to the current object — the object on which the method or constructor is being executed.
 - `this` cannot be used in static context.
 - Its most common use case is for accessing instance variables when local variables shadow them and for constructor chaining.
 
+```java
+
+class User {
+    String name;
+
+    User(String name) {
+        name = name // ❌ Does nothing
+        this.name = name; // ✅ instance variable = parameter
+    }
+}
+```
 ## Nested Classes
 - A nested class is a class defined inside another class.
 - Logical grouping → Example: Map.Entry inside Map.
