@@ -3207,6 +3207,173 @@ System.out::println
 ## `start()` vs `run()` 
 - `start()` turns a potential thread into a real concurrent thread, `run()` is jut the code that the thread executes.
 - `start()` is responsible for thread creation run `run()` is automatically called by the JVM after `start()`.
+## Print Even and Odd numbers synchronously
+- We have three common ways to create thread.
+    - Extending Thread class
+    - Impementing Runnable Interface
+    - Pass Runnable task to Thread Constructor
+
+```java
+public class NumberPrinter {
+
+  private int number = 1;
+  private final int max;
+
+  NumberPrinter(int max) {
+    this.max = max;
+  }
+
+  public synchronized void printOdd() {
+    while (number <= max) {
+      while (number % 2 == 0) {
+        try {
+          wait();
+        } catch (InterruptedException e) {
+          System.out.println(e);
+        }
+      }
+      if (number <= max) {
+        System.out.println("Odd Thread - " + number);
+        number++;
+        notify();
+      }
+    }
+  }
+
+  public synchronized void printEven() {
+    while (number <= max) {
+      while (number % 2 != 0) {
+        try {
+          wait();
+        } catch (InterruptedException e) {
+          System.out.println(e);
+        }
+      }
+      if (number <= max) {
+        System.out.println("Even Thread - " + number);
+        number++;
+        notify();
+      }
+    }
+  }
+}
+```
+### Passing Runnable task to Thread Constructor
+
+```java
+public class EvenOddLambdaDemo {
+
+    public static void main(String[] args) {
+
+        NumberPrinter printer = new NumberPrinter(10);
+
+        Thread oddThread = new Thread(() -> printer.printOdd());
+        Thread evenThread = new Thread(() -> printer.printEven());
+
+        oddThread.start();
+        evenThread.start();
+    }
+}
+```
+### Extending Thread Class
+
+```java
+// Odd Thread class
+class OddThread extends Thread {
+
+    private final NumberPrinter printer;
+
+    public OddThread(NumberPrinter printer) {
+        this.printer = printer;
+    }
+
+    @Override
+    public void run() {
+        printer.printOdd();
+    }
+}
+
+// Even Thread class
+class EvenThread extends Thread {
+
+    private final NumberPrinter printer;
+
+    public EvenThread(NumberPrinter printer) {
+        this.printer = printer;
+    }
+
+    @Override
+    public void run() {
+        printer.printEven();
+    }
+}
+
+// Main class
+public class EvenOddThreadExtend {
+
+    public static void main(String[] args) {
+
+        NumberPrinter printer = new NumberPrinter(10);
+
+        Thread oddThread = new OddThread(printer);
+        Thread evenThread = new EvenThread(printer);
+
+        oddThread.start();
+        evenThread.start();
+    }
+}
+```
+### Implementing Runnable interface
+
+```java
+// Odd Task
+class OddTask implements Runnable {
+
+    private final NumberPrinter printer;
+
+    public OddTask(NumberPrinter printer) {
+        this.printer = printer;
+    }
+
+    @Override
+    public void run() {
+        printer.printOdd();
+    }
+}
+
+// Even Task
+class EvenTask implements Runnable {
+
+    private final NumberPrinter printer;
+
+    public EvenTask(NumberPrinter printer) {
+        this.printer = printer;
+    }
+
+    @Override
+    public void run() {
+        printer.printEven();
+    }
+}
+
+// Main class
+public class EvenOddRunnableDemo {
+
+    public static void main(String[] args) {
+
+        NumberPrinter printer = new NumberPrinter(10);
+
+        Runnable oddTask = new OddTask(printer);
+        Runnable evenTask = new EvenTask(printer);
+
+        Thread oddThread = new Thread(oddTask);
+        Thread evenThread = new Thread(evenTask);
+
+        oddThread.start();
+        evenThread.start();
+    }
+}
+```
 ## Thread pool 
 ## Race condition 
 ##  locks 
