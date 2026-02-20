@@ -3177,6 +3177,105 @@ x -> System.out.println(x)
 
 System.out::println
 ```
+
+## Sealed Class
+- A sealed class is a class that restricts which other classes are allowed to extend or implement it.
+- It gives the developer full control over inheritance.
+- Before sealed classes, we had two choices
+    - `final` -  no one can extend.
+    - `abstract` -  anyone can extend it.
+- But Sealed classes restricts which classes are allowed to extend or implement it.
+
+```java
+public sealed class Shape 
+    permits Circle, Rectangle {
+}
+```
+- Each permitted subclass must declare one of
+    - `final` 
+    - `sealed` - can only extended by specific classes
+    - `non-sealed` - opens inheritance
+
+## Records
+- A record in Java is a special type of class designed to hold immutable data.
+- It reduces boilerplate for data carriers by automatically providing
+    - private final fields
+    - Constructor
+    - Getters
+    - `equals()`
+    - `hashCode()`
+    - `toString()`
+- It reduces repetitive code.
+```java
+public record User(String name, int age) {}
+
+// generated
+public final class User extends Record {
+
+    private final String name;
+    private final int age;
+
+    public User(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    public String name() { return name; }
+    public int age() { return age; }
+
+    @Override
+    public boolean equals(Object o) { /* auto */ }
+
+    @Override
+    public int hashCode() { /* auto */ }
+
+    @Override
+    public String toString() { /* auto */ }
+}
+```
+- Records are implicitly `final` and all fields are `private final`.
+- **Canonical Constructors** - The constructor matching all fields is called the canonical constructor.
+```java
+public record User(String name, int age) {
+
+    public User {
+        if (age < 0) {
+            throw new IllegalArgumentException("Age cannot be negative");
+        }
+    }
+}
+```
+- No assignment needed, compiler does it automatically. This is called compact constructor.
+- Custom Constructors are allowed, but it has to call the canonical constructor.
+```java
+public record User(String name, int age) {
+
+    public User(String name) {
+        this(name, 18); // delegate to canonical constructor
+    }
+}
+```
+- Records can have methods
+```java
+public record Rectangle(double length, double width) {
+
+    public double area() {
+        return length * width;
+    }
+}
+```
+- We can override methods
+- Records can have static fields and static methods.
+- Earlier we used Lombok
+    - But it is annotation based.
+    - Works at compile-time.
+- Records are built in java and is safer and standardized.
+- They are used for 
+    - Request DTO
+    - Response DTO
+    - Projections
+    - Configuration properties
+
 ## Multithreading 
 - Multithreading is running multiple independent paths of execution (threads) within the same process (the JVM), so work can happen concurrently
 - A thread will share the same heap memory with other threads but has its own stack.
