@@ -3106,6 +3106,77 @@ mappedStream.forEach(System.out::println);
 
 ```
 
+## Optional
+- `Optional<T>` is a container object that may or may not contain a non-null value. 
+- It represents the presence or absence of a value.
+- Instead of returning null, you return
+```java
+Optional<User>
+```
+- They help to avoid null-related errors and improve API clarity.
+#### Why `Optional<T>` was introduced? 
+- Before Java 8, APIs often returned null to mean “not found”
+
+```java
+User user = userRepo.findById(id); // might be null
+```
+- This can cause 3 main Problems
+    - null causes runtime crashes (NPE)
+    - null is not self-documenting
+    - null spreads “defensive programming” everywhere
+```java
+System.out.println(user.getName()); // NPE if user is null
+
+User findById(long id); // can it return null? unknown
+
+if (user != null && user.getAddress() != null && user.getAddress().getCity() != null) {
+    ...
+}
+```
+- Optional was introduced to make absence explicit in the type system
+
+```java
+Optional<User> findById(long id);
+```
+#### Usage
+- Consider this code 
+
+```java
+User user = repo.findById(id); // may be null
+if (user != null) {
+    System.out.println(user.getName());
+}
+```
+- Return Optional instead of null, this method never returns null.
+```java
+Optional<User> userOpt = repo.findById(id); // never null Optional
+```
+- Do something only if present (ifPresent) 
+
+```java
+userOpt.ifPresent(user -> System.out.println(user.getName()));
+```
+- This replaces additional null checks
+```java
+if (user != null) ...
+```
+- Provide a default (orElse / orElseGet)
+    - orElse (eager default) - getDefaultUser() is called even when user is present (because it’s evaluated before the method call finishes).
+    - orElseGet (lazy default — preferred if expensive) - getDefaultUser() runs only if Optional is empty.
+
+```java
+User user = userOpt.orElse(getDefaultUser());
+
+User user = userOpt.orElseGet(() -> getDefaultUser());
+```
+## Method Reference
+- A method reference is a shorthand syntax for a lambda expression that calls an existing method.
+- It improves readability and support functional programming
+```java
+x -> System.out.println(x)
+
+System.out::println
+```
 ## Multithreading 
 - Multithreading is running multiple independent paths of execution (threads) within the same process (the JVM), so work can happen concurrently
 - A thread will share the same heap memory with other threads but has its own stack.
