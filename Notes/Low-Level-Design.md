@@ -161,4 +161,28 @@ public class Main {
 - Private constructor - Used in Singleton or static factory patterns. 
 - Copy constructor (manual in Java) - Custom constructor to create a new object from an existing one.  
 
+## Singleton
+- The Singleton Pattern is a Creational Design Pattern that ensures that a class has only one instance throughout the application lifecycle and provides a global access point to that instance.
+- Useful for Loggers, Cache Manager, Database Connection Pool
 
+```java
+public class Singleton {
+
+    private static volatile Singleton instance;  
+    // volatile ensures visibility across threads
+
+    private Singleton() {
+    }
+
+    public static Singleton getInstance() {
+        if (instance == null) {  // First check (no locking)
+            synchronized (Singleton.class) {
+                if (instance == null) {  // Second check (with locking)
+                    instance = new Singleton();
+                }
+            }
+        }
+        return instance;
+    }
+}
+```
