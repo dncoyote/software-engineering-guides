@@ -191,4 +191,378 @@ resilience4j:
 - If OPEN → immediately call fallback
 - After wait time → HALF-OPEN
 - Trial calls determine next state
- 
+
+## End to End Spring Boot project
+- So assuming that this a simple REST CRUD with DB (JPA) and validation, I’ll implement layered architecture: Controller → Service → Repository (DAO) → Entity, with DTOs, validation, and global exception handling.
+- I am going to develop this for a User Management system.
+- Structure
+    - Entity: DB model + constraints
+    - Repository (DAO): Spring Data JPA
+    - DTOs: request/response (keep entities separate from API contracts using DTOs.)
+    - Service: business rules + transactions
+    - Controller: HTTP mapping + validation trigger
+    - Global exception handler: consistent error payloads
+```
+com.company.app
+  ├─ feature/user
+  │   ├─ api (controller)
+  │   ├─ dto (request/response)
+  │   ├─ domain (entity)
+  │   ├─ repo (dao)
+  │   ├─ service
+  └─ common/error (exceptions, handler)
+```
+- Dependencies 
+    - spring-boot-starter-web (REST)
+    - spring-boot-starter-validation (Bean Validation)
+    - spring-boot-starter-data-jpa (JPA)
+    - DB driver: postgresql (or h2 for speed)
+    - Lombok
+    - Actuator
+    - Flyway
+- API's
+    - `POST /api/users` → create (201)
+    - `GET /api/users/{id}` → fetch (200)
+    - `GET /api/users` → list (200)
+    - `PUT/PATCH /api/users/{id}` → update (200)
+    - `DELETE /api/users/{id}` → delete (204) 
+- Validations
+    - Request DTO validation: `@NotBlank`, `@Email`, `@Size`
+    - Service validation: uniqueness, existence checks
+    - DB validation: unique constraint at DB level too
+### Implementation
+#### Project setup
+- I will create a `pom.xml` with Spring Boot version 3.x, Java 17 and related necessary dependencies
+    - spring-boot-starter-web (REST)
+    - spring-boot-starter-validation (Bean Validation)
+    - spring-boot-starter-data-jpa (JPA)
+    - DB driver: postgresql driver 
+    - Lombok
+- I might add actuators or flyway dependencies when I am thinking production
+- I will add `application.yml`
+```
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/crud_demo
+    username: postgres
+    password: postgres
+  jpa:
+    hibernate:
+      ddl-auto: update   # interview/dev only; prod uses Flyway + ddl-auto=validate
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true
+```
+#### Entity layer
+- I will create `User.java`
+
+```java
+@Getter
+@Setter
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA needs it
+@AllArgsConstructor
+@Builder
+@Entity
+@Table(
+    name = "users",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_users_email", columnNames = "email")
+    },
+    indexes = {
+        @Index(name = "idx_users_email", columnList = "email")
+    }
+)
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, length = 100)
+    private String name;
+
+    @Column(nullable = false, length = 150)
+    private String email;
+
+    @Column(nullable = false)
+    private boolean active;
+
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        this.active = true;
+        this.createdAt = Instant.now();
+    }
+}
+```
+- Entity represents persistence model; I’m enforcing constraints at DB level too (unique email)
+- I keep API contracts separate via DTOs to avoid exposing entities
+#### Repository (DAO)
+- I will create `UserRepository.java`
+
+```java
+public interface UserRepository extends JpaRepository<User, Long> {
+    boolean existsByEmail(String email);
+}
+```
+- DAO/repository is only for persistence. Business rules stay in service layer.
+- Spring Data generates queries for common predicates like `existsByEmail`
+#### DTOs
+- I will create `CreateUserRequest.java`, `UpdateUserRequest.java`, `UserResponse.java`
+
+```java
+@Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class CreateUserRequest {
+
+    @NotBlank(message = "name is required")
+    @Size(max = 100, message = "name must be <= 100 chars")
+    private String name;
+
+    @NotBlank(message = "email is required")
+    @Email(message = "email must be valid")
+    @Size(max = 150, message = "email must be <= 150 chars")
+    private String email;
+}
+```
+
+```java
+@Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class UpdateUserRequest {
+
+    @Size(max = 100, message = "name must be <= 100 chars")
+    private String name;
+
+    @Email(message = "email must be valid")
+    @Size(max = 150, message = "email must be <= 150 chars")
+    private String email;
+
+    private Boolean active;
+}
+```
+
+```java
+@Getter
+@AllArgsConstructor
+public class UserResponse {
+    private Long id;
+    private String name;
+    private String email;
+    private boolean active;
+    private Instant createdAt;
+}
+```
+- I will also create the mapper classes `UserMapper.java`
+
+```java
+public final class UserMapper {
+
+    private UserMapper() {}
+
+    public static UserResponse toResponse(User user) {
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.isActive(),
+                user.getCreatedAt()
+        );
+    }
+}
+```
+
+- DTO validations are boundary checks; they prevent invalid request shapes early.
+#### Service layer
+- I will create `UserService.java` and `UserServiceImpl.java`
+
+```java
+public interface UserService {
+    UserResponse create(CreateUserRequest req);
+    UserResponse get(Long id);
+    List<UserResponse> list();
+    UserResponse update(Long id, UpdateUserRequest req);
+    void delete(Long id);
+}
+```
+
+```java
+@Service
+@RequiredArgsConstructor
+public class UserServiceImpl implements UserService {
+
+    private final UserRepository repo;
+
+    @Override
+    @Transactional
+    public UserResponse create(CreateUserRequest req) {
+        // Business validation (semantic)
+        if (repo.existsByEmail(req.getEmail())) {
+            throw new ConflictException("email already exists");
+        }
+
+        User user = User.builder()
+                .name(req.getName())
+                .email(req.getEmail())
+                .build();
+
+        User saved = repo.save(user);
+        return UserMapper.toResponse(saved);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserResponse get(Long id) {
+        User user = repo.findById(id)
+                .orElseThrow(() -> new NotFoundException("user not found: " + id));
+        return UserMapper.toResponse(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserResponse> list() {
+        return repo.findAll().stream().map(UserMapper::toResponse).toList();
+    }
+
+    @Override
+    @Transactional
+    public UserResponse update(Long id, UpdateUserRequest req) {
+        User user = repo.findById(id)
+                .orElseThrow(() -> new NotFoundException("user not found: " + id));
+
+        // PATCH semantics: only update provided fields
+        if (req.getName() != null) user.setName(req.getName());
+
+        if (req.getEmail() != null && !req.getEmail().equals(user.getEmail())) {
+            if (repo.existsByEmail(req.getEmail())) {
+                throw new ConflictException("email already exists");
+            }
+            user.setEmail(req.getEmail());
+        }
+
+        if (req.getActive() != null) user.setActive(req.getActive());
+
+        User saved = repo.save(user);
+        return UserMapper.toResponse(saved);
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long id) {
+        if (!repo.existsById(id)) {
+            throw new NotFoundException("user not found: " + id);
+        }
+        repo.deleteById(id);
+    }
+}
+```
+- Service owns business rules and transaction boundaries.
+- I’m using `@Transactional` at service methods; `readOnly=true` for reads.
+#### Controller layer
+- I will create `UserController.java`
+
+```java
+@RestController
+@RequestMapping("/api/users")
+@RequiredArgsConstructor
+public class UserController {
+
+    private final UserService service;
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserResponse create(@Valid @RequestBody CreateUserRequest req) {
+        return service.create(req);
+    }
+
+    @GetMapping("/{id}")
+    public UserResponse get(@PathVariable Long id) {
+        return service.get(id);
+    }
+
+    @GetMapping
+    public List<UserResponse> list() {
+        return service.list();
+    }
+
+    @PatchMapping("/{id}")
+    public UserResponse update(@PathVariable Long id, @Valid @RequestBody UpdateUserRequest req) {
+        return service.update(id, req);
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable Long id) {
+        service.delete(id);
+    }
+}
+```
+- Controller stays thin: validation + request mapping only
+- Using `@Valid` ensures request boundary validation, and service handles business rules
+#### Global Exception handler 
+- I will create `ApiError.java` and `GlobalExceptionHandler.java`
+
+```java
+@Getter
+@AllArgsConstructor
+public class ApiError {
+    private Instant timestamp;
+    private int status;
+    private String message;
+    private List<String> details;
+
+    public static ApiError of(int status, String message, List<String> details) {
+        return new ApiError(Instant.now(), status, message, details);
+    }
+}
+```
+
+```java
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<ApiError> notFound(NotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiError.of(404, ex.getMessage(), List.of()));
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiError> conflict(ConflictException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiError.of(409, ex.getMessage(), List.of()));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiError> validation(MethodArgumentNotValidException ex) {
+        List<String> details = ex.getBindingResult().getAllErrors().stream()
+                .map(err -> (err instanceof FieldError fe)
+                        ? fe.getField() + ": " + fe.getDefaultMessage()
+                        : err.getDefaultMessage()
+                )
+                .toList();
+
+        return ResponseEntity.badRequest()
+                .body(ApiError.of(400, "validation failed", details));
+    }
+}
+```
+- I centralize exception handling using `@RestControllerAdvice` to keep controllers clean and return consistent error contracts for clients.
+- This keeps controllers clean and improves client-side reliability
+
+```java
+@SpringBootApplication
+public class CrudDemoApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(CrudDemoApplication.class, args);
+    }
+}
+```
