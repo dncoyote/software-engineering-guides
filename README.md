@@ -5,3 +5,9 @@
 [Notes](Notes/Core-Java-Interview.md)  
 #### Low-Level-Design
 [Notes](Notes/Low-Level-Design.md)  
+#### Spring Boot
+[Notes](Notes/Spring-Boot.md)  
+#### Database 
+[Notes](Notes/Database.md)  
+#### Kafka 
+[Notes](Notes/Kafka.md)  
