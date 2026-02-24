@@ -303,6 +303,12 @@ public class User {
 ```
 - Entity represents persistence model; I’m enforcing constraints at DB level too (unique email)
 - I keep API contracts separate via DTOs to avoid exposing entities
+- `@NoArgsConstructor(access = AccessLevel.PROTECTED)` - JPA/Hibernate needs a no-arg constructor to instantiate entities via reflection/proxying. 
+- `@AllArgsConstructor` -  Generates a constructor with all fields.
+- `@Builder` - Creates a builder API for fluent object construction.
+- `@Entity` - Marks the class as a JPA entity mapped to a DB table.
+- `@Table` - Defines table-level constraints and indexes.
+- `@PrePersist` - JPA lifecycle callback that runs before INSERT. To set default fields consistently on creation.
 #### Repository (DAO)
 - I will create `UserRepository.java`
 
@@ -361,6 +367,26 @@ public class UserResponse {
     private Instant createdAt;
 }
 ```
+
+```java
+@Getter @Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class PutUserRequest {
+
+    @NotBlank(message = "name is required")
+    @Size(max = 100, message = "name must be <= 100 chars")
+    private String name;
+
+    @NotBlank(message = "email is required")
+    @Email(message = "email must be valid")
+    @Size(max = 150, message = "email must be <= 150 chars")
+    private String email;
+
+    @NotNull(message = "active is required")
+    private Boolean active;
+}
+```
 - I will also create the mapper classes `UserMapper.java`
 
 ```java
@@ -381,6 +407,19 @@ public final class UserMapper {
 ```
 
 - DTO validations are boundary checks; they prevent invalid request shapes early.
+#### Exception layer
+
+```java
+public class NotFoundException extends RuntimeException {
+    public NotFoundException(String message) { super(message); }
+}
+```
+
+```java
+public class ConflictException extends RuntimeException {
+    public ConflictException(String message) { super(message); }
+}
+```
 #### Service layer
 - I will create `UserService.java` and `UserServiceImpl.java`
 
@@ -390,6 +429,7 @@ public interface UserService {
     UserResponse get(Long id);
     List<UserResponse> list();
     UserResponse update(Long id, UpdateUserRequest req);
+    UserResponse replace(Long id, PutUserRequest req);
     void delete(Long id);
 }
 ```
@@ -453,6 +493,26 @@ public class UserServiceImpl implements UserService {
         User saved = repo.save(user);
         return UserMapper.toResponse(saved);
     }
+    
+    @Override
+    @Transactional
+    public UserResponse replace(Long id, PutUserRequest req) {
+        User user = repo.findById(id)
+                .orElseThrow(() -> new NotFoundException("user not found: " + id));
+
+        // PUT semantics: full replacement (except immutable fields like createdAt)
+        // Ensure unique email if it changes
+        if (!req.getEmail().equals(user.getEmail()) && repo.existsByEmail(req.getEmail())) {
+            throw new ConflictException("email already exists");
+        }
+
+        user.setName(req.getName());
+        user.setEmail(req.getEmail());
+        user.setActive(req.getActive());
+
+        User saved = repo.save(user);
+        return UserMapper.toResponse(saved);
+    }
 
     @Override
     @Transactional
@@ -466,6 +526,8 @@ public class UserServiceImpl implements UserService {
 ```
 - Service owns business rules and transaction boundaries.
 - I’m using `@Transactional` at service methods; `readOnly=true` for reads.
+- `@Transactional` - Wraps a method in a DB transaction, method commits if success or roll backs incase of runtime exception.
+- `@Transactional(readOnly = true)` - simple optimized for read operations like `get` or `list`.
 #### Controller layer
 - I will create `UserController.java`
 
@@ -498,6 +560,11 @@ public class UserController {
         return service.update(id, req);
     }
 
+    @PutMapping("/{id}")
+    public UserResponse replace(@PathVariable Long id, @Valid @RequestBody PutUserRequest req) {
+        return service.replace(id, req);
+    }
+
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable Long id) {
@@ -507,6 +574,9 @@ public class UserController {
 ```
 - Controller stays thin: validation + request mapping only
 - Using `@Valid` ensures request boundary validation, and service handles business rules
+- `@RequestBody` - deserialize JSON → DTO using Jackson
+- `PUT /users/{id}` - replaces the entire resource
+- `PATCH /users/{id}` - Partial update
 #### Global Exception handler 
 - I will create `ApiError.java` and `GlobalExceptionHandler.java`
 
@@ -557,7 +627,8 @@ public class GlobalExceptionHandler {
 ```
 - I centralize exception handling using `@RestControllerAdvice` to keep controllers clean and return consistent error contracts for clients.
 - This keeps controllers clean and improves client-side reliability
-
+- `@RestControllerAdvice` - It provides centralized exception handling across all controllers, ensuring consistent error responses, cleaner controller code, and better separation of concerns.
+- `@ExceptionHandler(MethodArgumentNotValidException.class)` -  It tells Spring, If this type of exception occurs, use this method to handle it.
 ```java
 @SpringBootApplication
 public class CrudDemoApplication {
