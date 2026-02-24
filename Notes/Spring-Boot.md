@@ -114,6 +114,12 @@ public class OrderService {
     }
 }
 ```
+###### Why is Constructor Injection preferred
+- Ensures immutability
+- Makes dependencies explicit
+- Improves testability
+- Enables fail-fast behavior
+- Detects circular dependencies early
 #### Field Injection
 ```java
 @Autowired
