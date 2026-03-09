@@ -152,6 +152,7 @@ public class StreamsDemo {
     System.out.println(highestPaidByDept);
     System.out.println("---------------------");
     // 13. Group employees by department and then by designation (two-level
+    // grouping)
     Map<String, Map<String, List<Employee>>> groupEmpByDeptAndDesig = employeeList.stream()
         .collect(Collectors.groupingBy(
             Employee::getDepartment,
@@ -161,7 +162,6 @@ public class StreamsDemo {
     System.out.println("---------------------");
     System.out.println(groupEmpByDeptAndDesig);
     System.out.println("---------------------");
-    // grouping).
     // 14. Convert a list of strings to uppercase using Stream API.
     List<String> names = List.of("John", "Mason", "Alex");
     List<String> uppercaseNames = names.stream().map(String::toUpperCase).toList();
@@ -180,6 +180,27 @@ public class StreamsDemo {
     System.out.println(" 15. Flatten a list of lists of integers into a single list.");
     System.out.println("---------------------");
     System.out.println(flattenMap);
+    System.out.println("---------------------");
+    // 16. Given a list of Integers, filter it to find numbers greater than 3 and
+    // multiply each number with 4 and store to another list
+    List<Integer> listNumbers = List.of(1, 2, 3, 4, 5, 6);
+    List<Integer> res = listNumbers.stream().filter(n -> n > 3).map(n -> n * 4).toList();
+    System.out.println("---------------------");
+    System.out.println(
+        " 16. Given a list of Integers, filter it to find numbers greater than 3 and multiply each number with 4 and store to another list");
+    System.out.println("---------------------");
+    System.out.println(res);
+    System.out.println("---------------------");
+    // 17. Given an array of int, filter it to find numbers greater than 3 and
+    // multiply each number with 4 and store to another list
+    int[] arrNumbers = { 1, 2, 3, 4, 5, 6 };
+    List<Integer> res1 = Arrays.stream(arrNumbers).filter(n -> n > 3).map(n -> n * 4).boxed().toList();
+    int[] res2 = Arrays.stream(arrNumbers).filter(n -> n > 3).map(n -> n * 4).toArray();
+    System.out.println("---------------------");
+    System.out.println(
+        " 17. Given an array of int, filter it to find numbers greater than 3 and multiply each number with 4 and store to another list");
+    System.out.println("---------------------");
+    System.out.println(res1);
     System.out.println("---------------------");
     // Find the first non-repeating character in a string using streams.
     // Given a list of transactions, group them by transaction type (CREDIT/DEBIT)
