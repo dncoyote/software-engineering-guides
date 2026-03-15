@@ -132,6 +132,155 @@ public void setPaymentService(PaymentService paymentService) {
     this.paymentService = paymentService;
 }
 ```
+
+## `@Component`
+- `@Component` is an annotation used to mark a class as a Spring-managed bean.
+- When Spring Boot starts, it scans the project and automatically detects classes annotated with `@Component` and registers them in the `ApplicationContext`.
+#### Internal flow
+- App starts
+- Spring Boot starts the `ApplicationContext`
+-2️⃣ It performs Component Scanning
+-3️⃣ It finds classes annotated with:
+
+```
+@Component
+@Service
+@Repository
+@Controller
+```
+- 
+- It creates objects (beans) and stores them in the IoC container
+### Example
+ 
+```java
+@Component
+public class PaymentService {
+
+    public void processPayment() {
+        System.out.println("Payment processed");
+    }
+}
+```
+- Now another class can use it via Dependency Injection.
+
+```java
+@Component
+public class OrderService {
+
+    private final PaymentService paymentService;
+
+    public OrderService(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+
+    public void placeOrder() {
+        paymentService.processPayment();
+    }
+}
+```
+- Spring automatically injects `PaymentService`.
+- Without `@Component`
+```java
+PaymentService paymentService = new PaymentService();
+```
+### Specialized Component Annotations
+
+| Annotations| Used for|
+| --- | --- |
+|`@Component` | Generic component|
+| `@Service`| Service layer|
+| `@Repository`| Data access layer|
+| `@Controller`| Web MVC controller|
+| `@RestController`| Rest API controller|
+
+## Bean
+- A Spring Bean is simply an object that is created, managed, and stored by the Spring IoC container.
+- Beans are stored in the Spring IoC Container, which is implemented by `ApplicationContext`.
+### Bean Lifecycle
+- Bean instantiation
+    - Spring creates the Bean
+- Dependency Injection
+    - Spring resolves dependencies and injects `PaymentService` bean.
+```java
+@Service
+public class OrderService {
+
+    private final PaymentService paymentService;
+
+    public OrderService(PaymentService paymentService) {
+        this.paymentService = paymentService;
+    }
+}
+```
+- BeanPostProcessor
+    - Spring allows custom logic to run before initialization. 
+- Initialization
+    - Spring now calls initialization callbacks `@PostConstruct`
+- Bean in use
+- Bean Destruction
+    - When application shuts down, Spring destroys bean `@PreDestroy`.
+
+```
+ApplicationContext starts
+        ↓
+Instantiate Bean
+        ↓
+Inject Dependencies
+        ↓
+BeanPostProcessor (before init)
+        ↓
+@PostConstruct / init method
+        ↓
+BeanPostProcessor (after init)
+        ↓
+Bean ready
+        ↓
+Application shutdown
+        ↓
+@PreDestroy
+```
+### Bean Scopes
+- By default, beans are singleton.
+
+| Scope| Description|
+| --- | --- |
+| singleton| One instance per container|
+| prototype| New instance every injection |
+| request| One per HTTP request|
+| session| One per HTTP session|
+
+### `@Bean`
+- `@Bean` is a core annotation in Spring used to explicitly define a bean inside a configuration class
+- Spring can create beans in two main ways
+    - Component Scanning
+    - Java Configuration used in `@Bean`
+- `@Bean` - When you cannot annotate the class, or you want manual control over bean creation.
+
+```java
+@Configuration
+public class DatabaseConfig {
+
+    @Bean
+    public DataSource dataSource() {
+        return new HikariDataSource();
+    }
+}
+```
+## `@SpringBootApplication`
+- `@SpringBootApplication` marks the typical Spring Boot entry point.
+- It is a meta-annotation that combines three key Spring annotations
+### `@Configuration`
+- Marks the class as a configuration class and tells Spring that this class can define beans.
+### `@EnableAutoConfiguration` 
+- Tells Spring Boot to automatically configure beans based on dependencies in the class path.
+- If you add `spring-boot-starter-web`, Spring Boot automatically configures
+    - DispatcherServlet
+    - Jackson ObjectMapper
+    - Embedded Tomcat
+    - Spring MVC configuration
+### `@ComponentScan`
+- Tells Spring to scan packages for components and detects `@Component` and specialized component classes.
+ 
 ## Circuit Breaker
 - A Circuit Breaker is a design pattern used in distributed systems to prevent cascading failures by stopping calls to a failing service temporarily.
 - Consider a system
@@ -198,6 +347,271 @@ resilience4j:
 - After wait time → HALF-OPEN
 - Trial calls determine next state
 
+## Filter 
+- A Filter is a component that intercepts HTTP requests and responses at the Servlet container level before the request reaches Spring MVC.
+- Filters are part of the Java Servlet specification, not Spring itself.
+- They sits between the client and the web application and can modify requests and responses.
+- Filters run before Spring MVC even starts processing the request.
+- Filters are used for generic request processing tasks that apply to the entire application.
+    - Authentication (Spring Security filters)
+    - Logging
+    - Request modification
+    - Response modification
+    - Compression
+    - CORS handling
+    - Rate limiting
+    - Encoding Configuration
+#### Filter interface
+- Filters implement the Servlet API interface `jakarta.servlet.Filter`, it contains three main methods.
+##### `init()`
+- Runs when filter is initialized.
+- Rarely used.
+
+```java
+@Override
+public void init(FilterConfig filterConfig) {
+    System.out.println("Filter initialized");
+}
+```
+##### `doFilter()`
+- `doFilter()` is where the filtering logic happens.
+- `chain.doFilter()` passes control to the next filter or servlet.
+##### `destry()`
+- Called when filter is destroyed.
+- Rarely used.
+#### Example Filter
+
+```java
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.stereotype.Component;
+
+@Component
+public class LoggingFilter implements Filter {
+
+    @Override
+    public void doFilter(ServletRequest request,
+                         ServletResponse response,
+                         FilterChain chain)
+                         throws IOException, ServletException {
+
+        HttpServletRequest req = (HttpServletRequest) request;
+
+        System.out.println("Incoming request: " + req.getRequestURI());
+
+        chain.doFilter(request, response);
+    }
+}
+```
+- Spring Boot automatically registers filters annotated with `@Component`.
+- Instead of `@Component`, you can register explicitly using `@Bean`.
+
+## Interceptor
+- An Interceptor in Spring MVC is a component that allows you to intercept HTTP requests before and after they reach the controller.
+- It works within the Spring MVC layer and is managed by the DispatcherServlet.
+- It can execute logic:
+    - Before the controller method executes
+    - After the controller method executes
+    - After the complete request finishes
+- Interceptors are used for cross-cutting concerns related to HTTP requests
+    - Logging requests
+    - Authentication checks
+    - Rate limiting
+    - Measuring response time
+    - Adding headers
+    - Request auditing
+#### Lifecycle Methods of an Interceptor
+- To create an interceptor in Spring MVC, you implement `HandlerInterceptor`, this interface provides three main methods.
+##### `preHandle()`
+- Runs before controller execution.
+- Used for 
+    - Authentication
+    - Authorization
+    - Logging
+    - Blocking requests
+
+```java
+@Override
+public boolean preHandle(HttpServletRequest request,
+                         HttpServletResponse response,
+                         Object handler) throws Exception {
+
+    System.out.println("Request received: " + request.getRequestURI());
+
+    return true; // continue request
+}
+```
+- If `false` is returned, request stops here and the controller is never executed.
+
+##### `postHandle()`
+- Runs after controller execution but before response is sent.
+- Used for
+    - modifying response
+    - adding attributes
+    - logging response
+
+```java
+@Override
+public void postHandle(HttpServletRequest request,
+                       HttpServletResponse response,
+                       Object handler,
+                       ModelAndView modelAndView) {
+
+    System.out.println("Controller executed");
+}
+```
+#### `afterCompletion()`
+- Runs after the request is fully completed.
+- Used for
+    - resource cleanup
+    - logging
+    - metrics
+
+```java
+@Override
+public void afterCompletion(HttpServletRequest request,
+                            HttpServletResponse response,
+                            Object handler,
+                            Exception ex) {
+
+    System.out.println("Request completed");
+}
+```
+### Example - Logging Interceptor
+
+```java
+@Component
+public class LoggingInterceptor implements HandlerInterceptor {
+
+    @Override
+    public boolean preHandle(HttpServletRequest request,
+                             HttpServletResponse response,
+                             Object handler) {
+
+        System.out.println("Incoming request: " + request.getRequestURI());
+        return true;
+    }
+}
+```
+- Telling Spring to run Interceptor for all `/api/**` endpoints.
+
+```java
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    private final LoggingInterceptor loggingInterceptor;
+
+    public WebConfig(LoggingInterceptor loggingInterceptor) {
+        this.loggingInterceptor = loggingInterceptor;
+    }
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+
+        registry.addInterceptor(loggingInterceptor)
+                .addPathPatterns("/api/**");
+    }
+}
+```
+
+## AOP
+- AOP allows you to apply behavior around a method execution without modifying the method itself.
+- AOP works using proxies that intercept method calls
+- Many core Spring features—`@Transactional`, caching, security checks—are built on it.
+###### What Problem AOP solves
+- In large applications, certain kinds of logic appear everywhere in the codebase:
+    - Logging
+    - Transactions (`@Transactional`)
+    - Security checks (`@PreAuthorize`)
+    - Metrics
+    - Caching (`@Cacheable`)
+    - Retry logic (`@Retryable`)
+- These concerns are called cross-cutting concerns because they cut across many modules.
+- Without AOP, your business logic gets polluted and your core logic becomes mixed with infrastructure code.
+```java
+// Without AOP
+public void transferMoney() {
+    startTransaction();
+
+    try {
+        log("Transfer started");
+
+        // business logic
+
+        commitTransaction();
+    } catch(Exception e) {
+        rollbackTransaction();
+    }
+}
+
+// With AOP
+@Transactional
+public void transferMoney() {
+    // business logic only
+}
+```
+- With AOP, Spring automatically starts a transaction, executes the method, commits or rolls back.
+### Core concepts
+##### Aspect
+- A module containing cross-cutting logic like Transaction aspect, Logging aspect.
+- It groups pointcuts and advice together.
+##### Advice
+- The actual code that runs when a join point is triggered.
+
+| Advice| When it runs|
+| --- | --- |
+| @Before| before method|
+| @After| after method|
+| @AfterReturning | after successful execution|
+| @AfterThrowing | after exception|
+| @Around| wraps entire method (before + after)|
+##### Joint point
+- A point in program execution where advice can be applied.
+```
+paymentService.processPayment();
+```
+##### Pointcut
+- Expression that determines which methods are intercepted.
+```
+execution(* com.example.service.*.*(..))
+```
+- This means intercept all methods in service package.
+##### Target Object
+- The original object whose method will run.
+- This is the real class whose methods we want to intercept.
+##### Proxy
+- A wrapper object created by Spring that intercepts method calls.
+#### Example
+- Service class
+
+```java
+@Service
+public class PaymentService {
+
+    public void processPayment() {
+        System.out.println("Processing payment...");
+    }
+}
+```
+- Aspect class
+
+```java
+@Aspect
+@Component
+public class LoggingAspect {
+
+    @Before("execution(* com.example.service.*.*(..))")
+    public void logBefore() {
+
+        System.out.println("Method execution started");
+    }
+}
+```
+
+```
+Method execution started
+Processing payment...
+```
 ## End to End Spring Boot project
 - So assuming that this a simple REST CRUD with DB (JPA) and validation, I’ll implement layered architecture: Controller → Service → Repository (DAO) → Entity, with DTOs, validation, and global exception handling.
 - I am going to develop this for a User Management system.
