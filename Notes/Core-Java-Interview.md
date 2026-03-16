@@ -2694,6 +2694,140 @@ try (BufferedReader br =
 }
 ```
 
+## Comparable
+- Comparable is an interface in Java used to define the natural ordering of objects.
+- If a class implements Comparable, it defines how its objects should be sorted by default.
+- Comparable class contains one method `compareTo`.
+- We implement Comparable for custom objects for which Java does not know how to compare them on bases of natural ordering. Suppose we have a `Person` objects which name and age, java does not know how to compare them on the basis of age or name. 
+```
+Person p1 = new Person("Alice", 30);
+Person p2 = new Person("Bob", 25);
+```
+
+```java
+class Person implements Comparable<Person> {
+
+    private String name;
+    private int age;
+
+    public Person(String name, int age) {
+        this.name = name;
+        this.age = age;
+    }
+
+    @Override
+    public int compareTo(Person other) {
+        return Integer.compare(this.age, other.age);
+    }
+
+    @Override
+    public String toString() {
+        return name + " " + age;
+    }
+}
+
+// implementation
+List<Person> persons = List.of(
+        new Person("Alice", 30),
+        new Person("Bob", 20),
+        new Person("Charlie", 25)
+);
+
+List<Person> sorted = persons.stream()
+        .sorted()
+        .toList();
+
+System.out.println(sorted);
+
+//OP
+Bob 20
+Charlie 25
+Alice 30
+
+// working
+< 0	this object comes before other
+0	objects are equal in ordering
+> 0	this object comes after other
+```
+
+[Code](/src/javaguides/comparable/Person.java)
+## Comparator
+- Comparator is an interface used to define custom ordering of objects.
+- It is used when we want different custom sorting strategies.
+- Comparator class contains one method `compare`.
+
+```java
+import java.util.Objects;
+
+public class Person {
+
+    private final String name;
+    private final int age;
+    private final String email;
+
+    public Person(String name, int age, String email) {
+        this.name = Objects.requireNonNull(name, "name cannot be null");
+        this.age = age;
+        this.email = email;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    @Override
+    public String toString() {
+        return "Person{name='%s', age=%d, email='%s'}"
+                .formatted(name, age, email);
+    }
+}
+```
+
+```java
+import java.util.Comparator;
+
+public class PersonAgeNameComparator implements Comparator<Person> {
+
+    @Override
+    public int compare(Person p1, Person p2) {
+
+        // Primary comparison → age
+        int ageComparison = Integer.compare(p1.getAge(), p2.getAge());
+
+        if (ageComparison != 0) {
+            return ageComparison;
+        }
+
+        // Secondary comparison → name
+        return p1.getName().compareToIgnoreCase(p2.getName());
+    }
+}
+
+//In modern codebases, instead of creating a class
+persons.sort(
+        Comparator
+                .comparing(Person::getAge)
+                .thenComparing(Person::getName)
+);
+```
+- Unlike Comparable, we can define multiple sorting strategies.
+```java
+Comparator<Person> sortByName =
+        Comparator.comparing(Person::getName);
+
+Comparator<Person> sortByEmail =
+        Comparator.comparing(Person::getEmail);
+```
+
+[Code](/src/javaguides/comparator/ComparatorDemo.java)
 ## Lambda Expression
 - A Lambda Expression is a compact piece of code that is used to represent an anonymous function (a function without a name). 
 - They  can be passed as an argument to a method or stored as a variable.
