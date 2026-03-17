@@ -3502,7 +3502,7 @@ public record Rectangle(double length, double width) {
 - Multithreading is running multiple independent paths of execution (threads) within the same process (the JVM), so work can happen concurrently
 - A thread will share the same heap memory with other threads but has its own stack.
 - Ways of creating a thread
-    - Extend `Thread` class
+    - Extend `Thread` class - Not recommended
     - Implement `Runnable`
     - Use `ExecutorService`
 ## Thread
@@ -3525,9 +3525,116 @@ public record Rectangle(double length, double width) {
 [ThreadDemo](/src/javaguides/multithreading/ThreadDemo.java)
 [TaskThread](/src/multithreading/TaskThread.java)
 
+## Runnable Interface
+- Runnable is a functional interface that represents a task with no return value.
+- It has a method `run()`.
+ 
+```java
+class CounterTask implements Runnable {
+
+    private int count = 0;
+
+    @Override
+    public void run() {
+        count++;
+        System.out.println(
+                Thread.currentThread().getName() +
+                " -> count = " + count
+        );
+    }
+}
+
+public class RunnableDemo{
+
+    public static void main(String[] args) {
+
+        CounterTask task = new CounterTask();
+
+        Thread t1 = new Thread(task);
+        Thread t2 = new Thread(task);
+        Thread t3 = new Thread(task);
+
+        t1.start();
+        t2.start();
+        t3.start();
+    }
+}
+
+//OP
+Thread-2 -> count = 3
+Thread-0 -> count = 1
+Thread-1 -> count = 2
+```
+
 ## `start()` vs `run()` 
+- `start()` - Creates a new thread and then calls `run()` inside it.
+- `run()` - Execute this method.
 - `start()` turns a potential thread into a real concurrent thread, `run()` is jut the code that the thread executes.
 - `start()` is responsible for thread creation run `run()` is automatically called by the JVM after `start()`.
+
+## `volatile`
+- `volatile` ensures visibility of changes across threads.
+- It make sures to read/write from main memory.
+ 
+```java
+public class VolatileDemo {
+
+  public static volatile boolean flag = false;
+
+  public static void main(String[] args) {
+
+    Thread t1 = new Thread(() -> {
+      while (!flag) {
+        System.out.println("Flag is still false");
+      }
+      System.out.println("Flag changed");
+    });
+
+    Thread t2 = new Thread(() -> {
+      try {
+        Thread.sleep(10);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+      }
+
+      flag = true;
+      System.out.println("Flag set to true");
+    });
+
+    t1.start();
+    t2.start();
+  }
+}
+
+//OP
+Flag is still false
+Flag is still false
+Flag is still false
+Flag is still false
+Flag is still false
+Flag is still false
+Flag changed
+Flag set to true
+```
+- Without `volatile`, flag will remain false. 
+
+## `synchronized`
+- `synchronized` is used to ensure that only one thread executes a critical section at a time and that changes are visible to other threads.
+- It solves two core concurrency Problems
+    - Race Condition - Multiple threads modifying shared data → incorrect results
+    - Visibility Problem - One thread updates a value → other threads don’t see it
+- `synchronized` can be added to methods, static methods and code-blocks.
+- It ensures
+    - Mutual Exclusion - Only one thread executes the block.
+    - Visibility - When a thread exists synchronized, other threads can see the updated values.
+
+## `Lock`
+- A Lock is a mechanism used to control access to a shared resource by multiple threads.
+
+```java
+Lock lock = new ReentrantLock();
+```
+
 ## Print Even and Odd numbers synchronously
 - We have three common ways to create thread.
     - Extending Thread class
@@ -3695,6 +3802,137 @@ public class EvenOddRunnableDemo {
     }
 }
 ```
+
+## Thread Lifecycle
+- The Thread Lifecycle describes the different states a thread goes through from creation to termination.
+```
+NEW
+ ↓ start()
+RUNNABLE (ready or running)
+ ↓
+-----------------------------------------
+| BLOCKED (waiting for lock)            |
+| WAITING (wait(), join())             |
+| TIMED_WAITING (sleep(), wait(timeout))|
+-----------------------------------------
+ ↓
+RUNNABLE
+ ↓
+TERMINATED
+```
+#### NEW 
+- Thread is created but not started.
+```java
+Thread t = new Thread(() -> System.out.println("Hello"));
+```
+#### RUNNABLE
+- Thread is in RUNNABLE state after calling `start()`
+
+#### BLOCKED
+- Thread is waiting to acquire a monitor lock or if another thread holds the lock.
+```java
+synchronized(lock) {
+    // thread needs lock
+}
+```
+#### WAITING
+- Thread is waiting indefinitely for another thread to signal.
+- It is triggered by `wait()`, `join()`.
+- Thread will remain in this state until `notify()`, `notifyAll()`.
+
+#### TIMED_WAITING
+- Thread is waiting for a specific time.
+- It is triggered by `Thread.sleep(1000)`, `wait(1000)`, `join(1000)`.
+
+#### TERMINATED
+- Thread has finished execution.
+ 
+```java
+public class ThreadLifecycleExample {
+
+    public static void main(String[] args) throws Exception {
+
+        Thread t = new Thread(() -> {
+            try {
+                System.out.println("Thread running...");
+                Thread.sleep(2000); // TIMED_WAITING
+                System.out.println("Thread finished");
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+
+        System.out.println("State after creation: " + t.getState()); // NEW
+
+        t.start();
+        System.out.println("State after start: " + t.getState()); // RUNNABLE
+
+        Thread.sleep(500);
+        System.out.println("State during sleep: " + t.getState()); // TIMED_WAITING
+
+        t.join();
+        System.out.println("State after completion: " + t.getState()); // TERMINATED
+    }
+}
+//Output
+
+State after creation: NEW
+Thread running...
+State after start: RUNNABLE
+State during sleep: TIMED_WAITING
+Thread finished
+State after completion: TERMINATED
+```
+
 ## Thread pool 
+- A Thread Pool is a collection of pre-created threads used to execute tasks.
+- Thread pools are created using `ExecutorService`.
+
+```java
+public class ThreadPoolBasicExample {
+
+  public static void main(String[] args) {
+
+    // Create a thread pool with 3 threads
+    ExecutorService executor = Executors.newFixedThreadPool(3);
+
+    // Submit 6 tasks
+    for (int i = 1; i <= 6; i++) {
+      int taskId = i;
+
+      executor.submit(() -> {
+        System.out.println(
+            "Task " + taskId +
+                " started by " + Thread.currentThread().getName());
+
+        try {
+          Thread.sleep(2000); // simulate work
+        } catch (InterruptedException e) {
+          Thread.currentThread().interrupt();
+        }
+
+        System.out.println(
+            "Task " + taskId +
+                " completed by " + Thread.currentThread().getName());
+      });
+    }
+
+    executor.shutdown();
+  }
+}
+//Output
+Task 1 started by pool-1-thread-1
+Task 3 started by pool-1-thread-3
+Task 2 started by pool-1-thread-2
+Task 1 completed by pool-1-thread-1
+Task 2 completed by pool-1-thread-2
+Task 3 completed by pool-1-thread-3
+Task 5 started by pool-1-thread-1
+Task 6 started by pool-1-thread-2
+Task 4 started by pool-1-thread-3
+Task 4 completed by pool-1-thread-3
+Task 6 completed by pool-1-thread-2
+Task 5 completed by pool-1-thread-1
+```
 ## Race condition 
 ##  locks 
