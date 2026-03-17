@@ -142,6 +142,287 @@ public class Main {
 - Fields (also known as attributes, instance variables, or data members) are variables defined inside a class that hold the state of an object.
 - Methods are blocks of code inside a class that define the object’s behavior — what the object can do or what can be done to it.
 
+## OOP
+- Object-Oriented Programming (OOP) is a programming paradigm that organizes software design around objects, which combine data (state) and behavior (methods).
+- OOP emphasizes the organization of software as a collection of objects that interact with each other to perform tasks.
+### Encapsulation
+- Encapsulation is the process of bundling data (fields) and behavior (methods) together and restricting direct access to the internal state of an object.
+- It protects the object state and enforces business rule.
+- Encapsulation is not just getters and setters
+```java
+//Without encapsulation
+class BankAccount {
+    public double balance; // ❌ directly accessible
+}
+
+//usage
+BankAccount acc = new BankAccount();
+acc.balance = -10000; // ❌ invalid state possible
+
+//With encapsulation
+public class BankAccount {
+
+    // Private field → hidden state
+    private double balance;
+
+    // Constructor
+    public BankAccount(double initialBalance) {
+        if (initialBalance < 0) {
+            throw new IllegalArgumentException("Invalid amount");
+        }
+        this.balance = initialBalance;
+    }
+
+    // Controlled behavior
+    public void deposit(double amount) {
+        if (amount <= 0) {
+            throw new IllegalArgumentException("Invalid deposit");
+        }
+        balance += amount;
+    }
+
+    public void withdraw(double amount) {
+        if (amount > balance) {
+            throw new IllegalArgumentException("Insufficient balance");
+        }
+        balance -= amount;
+    }
+
+    // Read-only access
+    public double getBalance() {
+        return balance;
+    }
+}
+```
+### Abstraction
+- Abstraction is the process of hiding implementation details and exposing only the essential features or behavior.
+- Abstraction is achieved in java using Interfaces and Abstract classes.
+- Abstraction achieves
+    - Loose coupling
+    - Replaceability - you can swap implementation.
+    - Scalability
+    - Cleaner code 
+
+```java
+public interface PaymentProcessor {
+    void processPayment(double amount);
+}
+```
+
+```java
+// Implementation
+public class UpiPayment implements PaymentProcessor {
+
+    @Override
+    public void processPayment(double amount) {
+        System.out.println("Processing UPI payment: " + amount);
+    }
+}
+
+public class CardPayment implements PaymentProcessor {
+
+    @Override
+    public void processPayment(double amount) {
+        System.out.println("Processing Card payment: " + amount);
+    }
+}
+```
+
+```java
+public class Main {
+
+    public static void main(String[] args) {
+
+        PaymentProcessor payment = new UpiPayment(); // can switch easily
+
+        payment.processPayment(1000);
+    }
+}
+```
+### Inheritance
+- Inheritance is the mechanism where one class (child/subclass/derived class) can acquire the properties and behaviors (fields and methods) of another class (parent/superclass/base class).
+- Code reusability → reuse fields & methods instead of duplicating.
+- Polymorphism → allows one reference type to point to multiple object types.
+- Extensibility → build more specific classes from generic ones.
+- Standardization → all subclasses inherit common behavior.
+- `final` class cannot be inherited, `final` method cannot be overridden.
+
+```java
+class Animal {
+    Animal() {
+        System.out.println("Animal created");
+    }
+}
+
+class Dog extends Animal {
+    Dog() {
+        super(); // calls Animal()
+        System.out.println("Dog created");
+    }
+}
+```
+
+```java
+class Vehicle {
+    String brand = "Generic";
+
+    void start() {
+        System.out.println("Vehicle starting...");
+    }
+}
+
+class Car extends Vehicle {
+    int wheels = 4;
+
+    @Override
+    void start() {
+        System.out.println(brand + " car starting with " + wheels + " wheels");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Vehicle v = new Car();  // polymorphism
+        v.start(); // Car’s overridden method
+    }
+}
+```
+#### Types of Inheritance
+##### Single Inheritance
+```java
+class Parent {}
+class Child extends Parent {}
+```
+##### Multilevel Inheritance
+```java
+class Grandparent {}
+class Parent extends Grandparent {}
+class Child extends Parent {}
+```
+##### Hierarchical Inheritance
+```java
+class Parent {}
+class Child1 extends Parent {}
+class Child2 extends Parent {}
+```
+##### Multiple Inheritance
+- Unlike C++ or Python, Java does not allow multiple inheritance with classes (to avoid ambiguity, e.g., diamond problem). Instead, it uses interfaces.
+```java
+interface A {}
+interface B {}
+class C implements A, B {}
+```
+### Polymorphism
+- The ability of an object to take multiple forms.
+#### Method Overriding
+- Method overriding happens when a subclass provides a new implementation for a method that is already defined in its superclass.
+- It allows the subclass to customize or completely change behavior while keeping the same method signature.
+- It should have the same methods name, parameter list and return type.
+- It should not reduce visibility.
+    - If parent method is `public`, then child method must be `public`.
+    - If parent method is `protected` then child method can be `protected` or `public`.
+- It should not throw new or broader checked exceptions than parent method.
+```java
+class Parent {
+    void read() throws IOException {}
+}
+
+class Child extends Parent {
+    @Override
+    void read() throws FileNotFoundException {} // ✅ allowed (narrower)
+}
+```
+```java
+class Child2 extends Parent {
+    @Override
+    void read() throws Exception {} // ❌ broader checked exception not allowed
+}
+```
+- Final methods, static methods, private methods and constructors cannot be overridden.
+
+```java
+class Animal {
+    void sound() {
+        System.out.println("Some generic sound");
+    }
+}
+
+class Dog extends Animal {
+    @Override
+    void sound() {
+        System.out.println("Bark");
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Animal a = new Dog();
+        a.sound(); // Bark (runtime polymorphism)
+    }
+}
+```
+- Even though reference type is `Animal`, the actual object (`Dog`) determines which method is called.
+- This is runtime polymorphism (dynamic dispatch).
+- Use `@Override` Annotation for clarity, it gives a compile-time error if the method doesn’t correctly override. 
+```java
+class Cat extends Animal {
+    @Override
+    void sound() { // ✅ correct override
+        System.out.println("Meow");
+    }
+}
+```
+#### Method Overriding vs Runtime Polymorphism vs Dynamic Method dispatch
+##### Method Overriding (what you write in code) 
+- Method overriding happens when a subclass provides a new implementation for a method that is already defined in its superclass.
+##### Runtime Polymorphism (what you achieve)
+- The ability of a superclass reference to point to objects of different subclasses, and the correct method implementation is chosen at runtime.
+- This is achieved through method overriding.
+##### Dynamic Method Dispatch (how JVM actually does this) 
+- The mechanism inside the JVM that makes runtime polymorphism possible.
+- When an overridden method is called through a superclass reference, Java uses dynamic method dispatch to determine which version to execute.
+- The method call is resolved dynamically at runtime, not statically at compile time.
+
+#### Method Overloading
+- Method overloading allows multiple methods with the same name but different parameter lists, enabling compile-time polymorphism 
+
+```java
+class Calculator {
+
+    int add(int a, int b) {
+        return a + b;
+    }
+
+    double add(double a, double b) {
+        return a + b;
+    }
+
+    int add(int a, int b, int c) {
+        return a + b + c;
+    }
+}
+```
+- Valid ways to overloading
+    - Different number of parameters.
+    - Different parameter types.
+    - Different parameter order.
+```java
+void log(String msg)
+void log(String msg, int level)
+
+    
+void process(int x)
+void process(double x)
+
+
+void draw(int x, double y)
+void draw(double y, int x)
+```
+- Simply changing the return type is not a valid way to overload.
+```java
+int add(int a, int b)
+double add(int a, int b) // ❌ compile-time error
+```
 ## Constructors
 - Constructor is a special method in a class that is used to create and initialize an object when it is instantiated.
     - It has the same name as the class.
@@ -502,7 +783,7 @@ public class Main {
 
 ## Facade Pattern
 - The Facade Pattern provides a simple, unified interface to a complex subsystem.
-- Instead of the client interacting with multiple classes, it interacts with one simplified interface (the facade) that coordinates everything.
+- Instead of the client interacting with multiple classes, it interacts with one simplified interface (the facade) that coordinates everything
 
 ## Behavioral Pattern
 - A Behavioral Pattern focuses on how objects communicate, collaborate, and distribute responsibilities within a system.

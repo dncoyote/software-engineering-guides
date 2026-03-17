@@ -1766,6 +1766,20 @@ public class Main {
     }
 }
 ```
+- Abstract classes exist when you want a common base class with shared behavior, but some parts must be implemented differently by subclasses.
+
+## Abstract Class vs Interface
+
+| Feature | Abstract Class | Interface |
+| --- | --- | --- |
+| Purpose| Share base class| Contract|
+| Inheritance| Single| Multiple|
+| Methods| Abstract + Concrete| Abstract + default + static|
+| Fields| Instance variables allowed| only `public static final` constants|
+| Constructor| Yes| No|
+| State| Can hold state | No instance state |
+| Access Modifier| Any | Methods are `public` by defaultell3 |
+| Relationship| IS-A relationship| CAN-DO relationship|
 
 # Collections Framework 
 - The Collections Framework (JCF) is a unified architecture for storing, manipulating, and transferring groups of objects.
@@ -2828,6 +2842,80 @@ Comparator<Person> sortByEmail =
 ```
 
 [Code](/src/javaguides/comparator/ComparatorDemo.java)
+
+## Enums
+- An enum (enumeration) is a special type that represents a fixed set of constants.
+- They are type safe fixed constants and can have fields, methods and behavior.
+- Each enum constant is a singleton instance. 
+- Before enums, people used
+```java
+public static final int ACTIVE = 1;
+public static final int INACTIVE = 2;
+```
+- This was not type safe, error prone and harder to read. 
+```java
+public enum Status {
+
+    ACTIVE("User is active"),
+    INACTIVE("User is inactive"),
+    PENDING("Waiting for approval");
+
+    private final String description;
+
+    Status(String description) {
+        this.description = description;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+}
+```
+
+## Generics
+- Generics allow you to write classes, methods, and interfaces with type parameters.
+- `List<String> names = new ArrayList<>();` here `String` is the type argument for the generic `List<T>`.
+- With Generics with can write code once and use it safely with many types.
+```java
+public class Box<T> {
+
+    private T value;
+
+    public void set(T value) {
+        this.value = value;
+    }
+
+    public T get() {
+        return value;
+    }
+}
+
+// Usage
+Box<String> box = new Box<>();
+box.set("Hello");
+
+String val = box.get();
+```
+- Generics are commonly used in Spring Data Repositories, DTO mapping, Response wrappers
+```java
+class ApiResponse<T> {
+    private T data;
+}
+```
+
+### Generic Method
+```java
+public class Util {
+
+    public static <T> T getFirst(List<T> list) {
+        return list.get(0);
+    }
+}
+
+// Usage
+Integer first = Util.getFirst(List.of(1, 2, 3));
+```
+
 ## Lambda Expression
 - A Lambda Expression is a compact piece of code that is used to represent an anonymous function (a function without a name). 
 - They  can be passed as an argument to a method or stored as a variable.
