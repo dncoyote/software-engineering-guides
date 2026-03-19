@@ -3616,7 +3616,7 @@ Flag is still false
 Flag changed
 Flag set to true
 ```
-- Without `volatile`, flag will remain false. 
+- Without `volatile`, `t1` will not identify that `t2` changed the flag to true. 
 
 ## `synchronized`
 - `synchronized` is used to ensure that only one thread executes a critical section at a time and that changes are visible to other threads.

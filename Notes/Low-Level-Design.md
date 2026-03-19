@@ -145,7 +145,7 @@ public class Main {
 ## OOP
 - Object-Oriented Programming (OOP) is a programming paradigm that organizes software design around objects, which combine data (state) and behavior (methods).
 - OOP emphasizes the organization of software as a collection of objects that interact with each other to perform tasks.
-### Encapsulation
+## Encapsulation
 - Encapsulation is the process of bundling data (fields) and behavior (methods) together and restricting direct access to the internal state of an object.
 - It protects the object state and enforces business rule.
 - Encapsulation is not just getters and setters
@@ -194,7 +194,7 @@ public class BankAccount {
     }
 }
 ```
-### Abstraction
+## Abstraction
 - Abstraction is the process of hiding implementation details and exposing only the essential features or behavior.
 - Abstraction is achieved in java using Interfaces and Abstract classes.
 - Abstraction achieves
@@ -239,7 +239,7 @@ public class Main {
     }
 }
 ```
-### Inheritance
+## Inheritance
 - Inheritance is the mechanism where one class (child/subclass/derived class) can acquire the properties and behaviors (fields and methods) of another class (parent/superclass/base class).
 - Code reusability → reuse fields & methods instead of duplicating.
 - Polymorphism → allows one reference type to point to multiple object types.
@@ -312,7 +312,7 @@ interface A {}
 interface B {}
 class C implements A, B {}
 ```
-### Polymorphism
+## Polymorphism
 - The ability of an object to take multiple forms.
 #### Method Overriding
 - Method overriding happens when a subclass provides a new implementation for a method that is already defined in its superclass.
@@ -423,6 +423,465 @@ void draw(double y, int x)
 int add(int a, int b)
 double add(int a, int b) // ❌ compile-time error
 ```
+
+## SOLID principles
+- SOLID is a set of 5 design principles that help you write clean, maintainable, scalable, and extensible code.
+- S	Single Responsibility Principle
+- O	Open/Closed Principle
+- L	Liskov Substitution Principle
+- I	Interface Segregation Principle
+- D	Dependency Inversion Principle
+- Without SOLID:
+    - tightly coupled code
+    - hard to extend
+    - fragile systems
+    - code breaks on small changes
+- With SOLID:
+    - flexible design
+    - easy to extend
+    - testable systems
+    - reusable components
+- SOLID is guidance, not religion.
+
+## Single Responsibility Principle (SRP)
+- A class should have only one reason to change.
+- SRP improves maintainability, testability, and reduces side effects when requirements change.
+#### Example
+
+```java
+public class InvoiceService {
+
+    public void calculateTotal(Order order) {
+        // Business logic for total calculation
+    }
+
+    public void saveToDatabase(Order order) {
+        // Persistence logic
+    }
+
+    public void sendInvoiceEmail(Order order) {
+        // Email sending logic
+    }
+
+    public void generatePdf(Order order) {
+        // PDF generation logic
+    }
+}
+```
+- This class has multiple responsibilities and therefore multiple reasons to change.
+    - billing calculation
+    - database persistence
+    - email notification
+    - PDF generation
+
+```java
+public class InvoiceCalculator {
+
+    public double calculateTotal(Order order) {
+        // Business logic for total calculation
+        return order.getItems()
+                .stream()
+                .mapToDouble(item -> item.getPrice() * item.getQuantity())
+                .sum();
+    }
+}
+```
+```java
+public class InvoiceRepository {
+
+    public void save(Order order) {
+        // Save invoice/order to database
+    }
+}
+```
+```java
+public class InvoiceEmailService {
+
+    public void sendInvoice(Order order) {
+        // Send invoice email
+    }
+}
+```
+```java
+public class InvoicePdfGenerator {
+
+    public byte[] generate(Order order) {
+        // Generate PDF and return as bytes
+        return new byte[0];
+    }
+}
+```
+- In a Spring Boot application, SRP usually shows up as separation of:
+    - Controller → handles HTTP request/response
+    - Service → contains business logic
+    - Repository → persistence logic
+    - Mapper → conversion between DTO and entity
+    - Validator → validation logic
+    - Client → external API integration
+
+## Open/Closed Principle (OCP) 
+- Software entities should be open for extension, closed for modification. 
+- When a new requirement comes, the ideal design lets you add a new class, not edit a giant chain of `if-else`.
+- This means you should be able to add new behavior, without changing already-tested stable code too much.
+- OCP is commonly achieved using interfaces, composition, and design patterns like Strategy or Factory.
+#### Example
+
+```java
+public class NotificationService {
+
+    public void send(String type, String message) {
+        if ("EMAIL".equals(type)) {
+            System.out.println("Sending email: " + message);
+        } else if ("SMS".equals(type)) {
+            System.out.println("Sending SMS: " + message);
+        } else if ("PUSH".equals(type)) {
+            System.out.println("Sending Push Notification: " + message);
+        }
+    }
+}
+```
+- Everytime a new Notification system is implemented
+    - it modifies existing class
+    - which risks breaking old logic 
+
+```java
+public interface NotificationSender {
+    void send(String message);
+}
+```
+```java
+public class EmailNotificationSender implements NotificationSender {
+    @Override
+    public void send(String message) {
+        System.out.println("Sending email: " + message);
+    }
+}
+```
+```java
+public class SmsNotificationSender implements NotificationSender {
+    @Override
+    public void send(String message) {
+        System.out.println("Sending SMS: " + message);
+    }
+}
+```
+```java
+public class PushNotificationSender implements NotificationSender {
+    @Override
+    public void send(String message) {
+        System.out.println("Sending push notification: " + message);
+    }
+}
+```
+- New channels like WhatsApp can be added without modifying the core abstraction.
+## Liskov Substitution Principle (LSP)
+- Subtypes must be replaceable with their base types without breaking behavior.
+- If `B` is a subtype of `A`, then I should be able to use `B` wherever `A` is expected.
+- If a subclass changes expected behavior, throws unsupported exceptions for inherited methods, or violates the parent contract, then inheritance is wrong and composition or better abstractions should be used.
+#### Example
+
+```java
+public class PaymentProcessor {
+    public void processRefund(double amount) {
+        // default refund logic
+    }
+}
+
+public class CryptoPaymentProcessor extends PaymentProcessor {
+    @Override
+    public void processRefund(double amount) {
+        throw new UnsupportedOperationException("Refund not supported");
+    }
+}
+```
+- Here `CryptoPaymentProcessor` does not support `processRefund` but we are forced to implement it.
+
+```java
+public interface PaymentProcessor {
+    void processPayment(double amount);
+}
+```
+```java
+public interface RefundablePaymentProcessor extends PaymentProcessor {
+    void processRefund(double amount);
+}
+```
+```java
+public class CardPaymentProcessor implements RefundablePaymentProcessor {
+
+    @Override
+    public void processPayment(double amount) {
+        System.out.println("Card payment processed: " + amount);
+    }
+
+    @Override
+    public void processRefund(double amount) {
+        System.out.println("Card refund processed: " + amount);
+    }
+}
+```
+```java
+public class CryptoPaymentProcessor implements PaymentProcessor {
+
+    @Override
+    public void processPayment(double amount) {
+        System.out.println("Crypto payment processed: " + amount);
+    }
+}
+```
+## Interface Segregation Principle (ISP)
+- Clients should not be forced to depend on methods they do not use.
+- ISP means we should design small, focused interfaces so clients only depend on what they actually use. Large interfaces often cause fragile implementations, dummy methods, and unsupported operations
+#### Example
+
+```java
+// God Interface
+public interface FileStorageService {
+
+    void upload(String fileName, byte[] data);
+
+    byte[] download(String fileName);
+
+    void delete(String fileName);
+
+    String generatePreSignedUrl(String fileName);
+
+    void restoreVersion(String fileName, int version);
+
+    void applyLifecyclePolicy(String fileName);
+}
+```
+
+```java
+public class LocalFileStorageService implements FileStorageService {
+
+    @Override
+    public void upload(String fileName, byte[] data) {
+        System.out.println("Saving file locally: " + fileName);
+    }
+
+    @Override
+    public byte[] download(String fileName) {
+        System.out.println("Reading file locally: " + fileName);
+        return new byte[0];
+    }
+
+    @Override
+    public void delete(String fileName) {
+        System.out.println("Deleting file locally: " + fileName);
+    }
+
+    @Override
+    public String generatePreSignedUrl(String fileName) {
+        // ❌ Not supported
+        throw new UnsupportedOperationException("Pre-signed URL not supported");
+    }
+
+    @Override
+    public void restoreVersion(String fileName, int version) {
+        // ❌ Not supported
+        throw new UnsupportedOperationException("Versioning not supported");
+    }
+
+    @Override
+    public void applyLifecyclePolicy(String fileName) {
+        // ❌ Not supported
+        throw new UnsupportedOperationException("Lifecycle policy not supported");
+    }
+}
+```
+- Methods throw UnsupportedOperationException and there is tight coupling.
+
+```java
+public interface FileUploader {
+    void upload(String fileName, byte[] data);
+}
+```
+```java
+public interface FileDownloader {
+    byte[] download(String fileName);
+}
+```
+```java
+public interface FileDeleter {
+    void delete(String fileName);
+}
+```
+```java
+public interface PreSignedUrlGenerator {
+    String generatePreSignedUrl(String fileName);
+}
+```
+```java
+public interface VersioningSupport {
+    void restoreVersion(String fileName, int version);
+}
+```
+- Implement only what is supported.
+```java
+// Local Storage
+public class LocalFileStorageService
+        implements FileUploader, FileDownloader, FileDeleter {
+
+    @Override
+    public void upload(String fileName, byte[] data) {
+        System.out.println("Saving file locally: " + fileName);
+    }
+
+    @Override
+    public byte[] download(String fileName) {
+        System.out.println("Reading file locally: " + fileName);
+        return new byte[0];
+    }
+
+    @Override
+    public void delete(String fileName) {
+        System.out.println("Deleting file locally: " + fileName);
+    }
+}
+```
+
+```java
+// AWS S3
+public class S3FileStorageService
+        implements FileUploader, FileDownloader, FileDeleter,
+                   PreSignedUrlGenerator, VersioningSupport {
+
+    @Override
+    public void upload(String fileName, byte[] data) {
+        System.out.println("Uploading to S3: " + fileName);
+    }
+
+    @Override
+    public byte[] download(String fileName) {
+        System.out.println("Downloading from S3: " + fileName);
+        return new byte[0];
+    }
+
+    @Override
+    public void delete(String fileName) {
+        System.out.println("Deleting from S3: " + fileName);
+    }
+
+    @Override
+    public String generatePreSignedUrl(String fileName) {
+        return "https://s3-url/" + fileName;
+    }
+
+    @Override
+    public void restoreVersion(String fileName, int version) {
+        System.out.println("Restoring version " + version + " from S3");
+    }
+}
+```
+- Clients only depend on what they need.
+
+```java
+// Upload service
+public class FileUploadService {
+
+    private final FileUploader uploader;
+
+    public FileUploadService(FileUploader uploader) {
+        this.uploader = uploader;
+    }
+
+    public void uploadFile(String fileName, byte[] data) {
+        uploader.upload(fileName, data);
+    }
+}
+```
+
+```java
+public class SecureDownloadService {
+
+    private final PreSignedUrlGenerator urlGenerator;
+
+    public SecureDownloadService(PreSignedUrlGenerator urlGenerator) {
+        this.urlGenerator = urlGenerator;
+    }
+
+    public String getDownloadLink(String fileName) {
+        return urlGenerator.generatePreSignedUrl(fileName);
+    }
+}
+```
+- In order to resolve which implementation to choose, we can :
+    - Set a `@Primary`
+    - Use `@Qualifier("s3")` and `@Qualifier("local")`.
+
+## Dependency Inversion Principle (DIP)
+- High-level modules should not depend on low-level modules.
+- Both should depend on abstractions.
+- Business logic should not be tightly coupled to specific implementations.
+- This reduces coupling and makes the system easier to test, extend, and maintain
+- In Spring, DIP is the design principle and Dependency Injection is the technique used to implement it.
+#### Example
+ 
+```java
+public class EmailService {
+    public void sendEmail(String message) {
+        System.out.println("Sending email: " + message);
+    }
+}
+
+public class OrderService {
+
+    private final EmailService emailService = new EmailService();
+
+    public void placeOrder() {
+        System.out.println("Order placed");
+        emailService.sendEmail("Your order has been placed");
+    }
+}
+```
+- Here `OrderService` is tightly coupled with `EmailService`.
+
+```java
+// abstraction
+public interface NotificationService {
+    void send(String message);
+}
+```
+```java
+// Concrete implementation
+public class EmailNotificationService implements NotificationService {
+
+    @Override
+    public void send(String message) {
+        System.out.println("Sending email: " + message);
+    }
+}
+```
+```java
+// High level module depends on interface
+public class OrderService {
+
+    private final NotificationService notificationService;
+
+    public OrderService(NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
+
+    public void placeOrder() {
+        System.out.println("Order placed");
+        notificationService.send("Your order has been placed");
+    }
+}
+```
+```java
+//Main
+public class Main {
+    public static void main(String[] args) {
+        NotificationService notificationService = new EmailNotificationService();
+        OrderService orderService = new OrderService(notificationService);
+
+        orderService.placeOrder();
+    }
+}
+```
+- Now `OrderService` does not care whether notification happens via email, SMS, or mock.
+
 ## Constructors
 - Constructor is a special method in a class that is used to create and initialize an object when it is instantiated.
     - It has the same name as the class.
