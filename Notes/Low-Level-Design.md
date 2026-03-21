@@ -1155,7 +1155,7 @@ private User(Builder builder) {
 ```
 
 ## Factory Method Pattern
-- The Factory Method Pattern provides an interface (or method) for creating objects, but lets subclasses or a dedicated factory decide which concrete object to instantiate.
+- The Factory Method Pattern is a Creational Design Pattern that provides an interface (or method) for creating objects, but lets subclasses or a dedicated factory decide which concrete object to instantiate.
 - Instead of creating objects directly with `new`, you delegate the creation logic to a factory method.
 #### Implementation
 
@@ -1237,11 +1237,11 @@ public class Main {
 - In real software systems, objects rarely exist alone. These components must interact in a structured way. Structural patterns provide clean ways to organize these relationships.
 
 ## Adapter Pattern
-- The Adapter Pattern allows two incompatible interfaces to work together by converting the interface of one class into another interface that the client expects.
+- The Adapter Pattern is a Structural Design Pattern that allows two incompatible interfaces to work together by converting the interface of one class into another interface that the client expects.
 - It translates one interface into another.
 
 ## Facade Pattern
-- The Facade Pattern provides a simple, unified interface to a complex subsystem.
+- The Facade Pattern is Structural Design Pattern that provides a simple, unified interface to a complex subsystem.
 - Instead of the client interacting with multiple classes, it interacts with one simplified interface (the facade) that coordinates everything
 
 ## Behavioral Pattern
