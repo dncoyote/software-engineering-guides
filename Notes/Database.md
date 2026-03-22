@@ -44,6 +44,117 @@ FROM users u
 JOIN orders o ON u.id = o.user_id;
 ```
 
+## Relational Database
+- A Relational Database is a type of database that stores data in tables (relations) with rows and columns, and defines relationships between tables using keys and constraints.
+- Data is stored in structured tables and connected using keys, ensuring consistency and integrity.
+- Relational DBs are best for:
+    - Banking systems
+    - Payment systems
+    - Inventory management
+    - Order processing
+    - Enterprise applications
+#### Characteristics
+- Table (Relation)
+    - A structured collection of data.
+- Row (Tuple)
+    - A single record.
+- Column (Attribute)
+    - A property of the entity.
+####  Advantages
+- Strong consistency (ACID)
+- Structured data
+- Powerful querying (JOINs)
+- Data integrity via constraints
+- Mature ecosystem
+#### Disadvantages
+- Hard to scale horizontally
+- Schema changes costly
+- Joins can be expensive
+- Not ideal for unstructured data
+
+
+## NoSQL
+- NoSQL refers to a class of databases designed to handle large-scale, distributed, flexible data models that do not strictly follow the relational (table-based) model of SQL databases.
+- NoSQL databases are designed for scalability and flexibility, using non-relational data models like documents or key-value pairs. 
+- They are optimized for high throughput and distributed systems, often trading strict consistency and normalization for performance and scalability.
+- Examples
+- NoSQL databases embeds related data together instead of splitting data across multiple tables and joining them.
+- Core idea is to optimize for scale, flexibility and performance over strict structure.
+- Common NoSQL Databases and uses 
+    - MongoDB -  Product catalogs, CMS, User profiles, Analytics ingestion
+    - Cassandra - Time-series data, Logging, IoT data
+    - Redis - Caching, Session storage, Rate limiting
+    - DynamoDB
+### Types
+- Document Databases - Data stored as JSON like documents.
+    - Allows Nested data with flexible schema.
+    - No joins required.
+    - Example - MongoDB
+- Key-Value stores
+    - Extremely fast and simple look-up.
+    - Used for caching.
+    - Example - Redis
+- Wide Column stores
+    - Massive scale, high write throughput
+    - Distributed by design
+    - Example - Cassandra
+- Graph Database
+    - Relationship heavy queries.
+    - Social networks, recommendations.
+    - Example Neo4j
+
+## When to use NoSQL 
+- Use NoSQL when you need flexible schema, high scalability, high write throughput, or data models that don’t fit relational structures, and you can relax strict ACID guarantees or avoid complex joins.
+###### Flexible/Evolving schema
+- Rapid product iteration
+- Startups
+
+```json
+//today
+{
+  "name": "Bilal",
+  "skills": ["Java", "Spring"],
+  "social": {
+    "twitter": "@bilal"
+  }
+}
+
+//tomorrow
+{
+  "name": "Bilal",
+  "skills": ["Java"],
+  "certifications": ["AWS"]
+}
+```
+###### High Write Throughput (Write-Heavy Systems)
+- Applicable for systems like logs, metrics, IoT events.
+- Cassandra
+
+###### Read Patterns Centered Around Single Entity
+- There is no joins - like `user`
+- Unlike `users → orders → order_items (JOINs)`
+###### Horizontal Scaling Required
+- Applicable when applications is designed for millions of users, global systems with high traffic.
+- NoSQL is built for sharding.
+###### Low Latency requirements
+- When you want to fetch data in low latency.
+- Caching and session storage
+###### Semi-Structured/Unstructured Data 
+- JSON Docs, Logs, Content systems.
+###### Eventual Consistency is acceptable
+- If a slight delay is acceptable.
+- Social media
+
+## When Not to use NoSQL 
+- Use SQL when you need strict structure and consistency and involves scale and flexibility.
+###### Strong Transactions required.
+###### Complex Joins / Relationships
+###### Strict Data Integrity Needed
+###### Schema Is Stable and Well-Understood
+###### Consistent Reads are mandated 
+
+## ACID
+
 ## WHERE vs HAVING
 - `WHERE`
     - Filter rows before grouping
@@ -409,3 +520,15 @@ INSERT INTO author_book (author_id, book_id) VALUES
 (2, 101),  -- Author B wrote Book X as well
 (3, 103);  -- Author C wrote Book Z
 ```
+## CAP Theorem 
+
+## Normalization
+- Organizing data to avoid redundancy.
+
+## MongoDB
+- MongoDB is a document-oriented NoSQL database that stores data as JSON-like documents (BSON) instead of rows and columns.
+
+```
+Collections → Documents → Fields → Embedded Data
+```
+- MongoDB can handle both read-heavy and write-heavy workloads, but it is often preferred for write-heavy and high-ingest systems
