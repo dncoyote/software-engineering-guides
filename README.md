@@ -11,3 +11,7 @@
 [Notes](Notes/Database.md)  
 #### Kafka 
 [Notes](Notes/Kafka.md)  
+#### React 
+[Notes](Notes/React.md)  
+#### Challenges 
+[Notes](Notes/Challenges.md)  
