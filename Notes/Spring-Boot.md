@@ -612,6 +612,147 @@ public class LoggingAspect {
 Method execution started
 Processing payment...
 ```
+## Spring Proxy
+- A Spring Proxy is a wrapper object created by Spring around your original bean to intercept method calls and apply additional behavior (like transactions, logging, security).
+- Spring uses Spring Proxy when it needs to add behavior without modifying your code.
+- @Transactional
+- @Cacheable
+- @Async
+- @Retryable
+- @CircuitBreaker
+- Types
+- JDK Dynamic Proxy
+- CGLIB Proxy (default in Spring Boot)
+```
+userService.createUser();
+
+// What Spring does
+Proxy.createUser():
+startTransaction()
+try:
+target.createUser()
+commit()
+catch:
+rollback()
+```
+
+## `@Transactional`
+- `@Transactional` is a Spring annotation used to manage database transactions declaratively.
+- It ensures atomic operations.
+- `@Transactional` ensures that a method executes within a database transaction.
+- All DB operations inside the method are treated as one unit of work
+- Either everything succeeds (commit)
+- Or everything fails (rollback)
+- It ensures that all operations within a method are executed within a transaction, and either all succeed or all fail.
+- Spring implements it using AOP proxies that intercept method calls and handle transaction boundaries automatically.
+- `@Transactional` should be placed in Service layer.
+```
+Client Request
+↓
+Controller
+↓
+Service (@Transactional)
+↓
+Proxy starts transaction
+↓
+Repository (DB operations)
+↓
+Commit / Rollback
+↓
+Response
+```
+### How Spring Implements `@Transactional`
+- Spring implements `@Transactional` using AOP proxies + a Transaction Manager.
+### Types of Transactions
+##### Default Transaction
+```
+@Transactional
+```
+- It defines default behavior.
+- propagation = REQUIRED
+- isolation = DEFAULT
+- rollback on `RuntimeException`
+##### Read-only Transaction
+```
+@Transactional(readOnly = true)
+```
+- Its purpose is optimization
+- Prevent accidental writes
+- Hibernate skips dirty checking
+
+##### Timeout
+```
+@Transactional(timeout = 5)
+```
+- Transaction fails if it exceeds 5 seconds.
+
+##### Isolation Level
+```
+@Transactional(isolation = Isolation.READ_COMMITTED)
+```
+- Controls how transactions interact.
+##### Rollback Rules
+```
+@Transactional(rollbackFor = Exception.class)
+```
+### Propagation
+- Propagation defines how a transaction behaves when one transactional method calls another.
+##### REQUIRED (Default)
+```
+@Transactional(propagation = Propagation.REQUIRED)
+```
+```
+methodA (tx1)
+↓
+methodB joins tx1
+```
+- If transaction exists → join it
+- Else → create new
+
+##### REQUIRES_NEW
+```
+@Transactional(propagation = Propagation.REQUIRES_NEW)
+```
+```
+methodA (tx1)
+↓
+methodB (tx2 new)
+```
+- Always creates a new transaction
+- Suspends existing one
+
+##### SUPPORTS
+```
+@Transactional(propagation = Propagation.SUPPORTS)
+```
+- If transaction exists → use it
+- Else → run without transaction
+-
+##### NOT_SUPPORTED
+```
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
+```
+```
+methodA (tx1)
+↓
+methodB (no tx)
+```
+- Always runs without transaction
+- Suspends existing transaction
+
+##### MANDATORY
+```
+@Transactional(propagation = Propagation.MANDATORY)
+```
+- Must run inside existing transaction
+- Else → throws exception
+
+##### NEVER
+```
+@Transactional(propagation = Propagation.NEVER)
+```
+- Must NOT run inside transaction
+- Else → throws exception
 ## End to End Spring Boot project
 - So assuming that this a simple REST CRUD with DB (JPA) and validation, I’ll implement layered architecture: Controller → Service → Repository (DAO) → Entity, with DTOs, validation, and global exception handling.
 - I am going to develop this for a User Management system.
