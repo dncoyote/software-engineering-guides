@@ -3328,6 +3328,24 @@ mappedStream.forEach(System.out::println);
 
 ```
 
+
+## Parallel Streams
+- A parallel stream allows you to process elements of a stream in parallel using multiple threads.
+- While `list.stream()` enables sequential and ordered execution using a single thread, `list.parallelStream()` enables parallel and unordered execution using multiple thread.
+- Parallel Streams use ForkJoinPool internally.
+- Execution Flow
+  - Split data into chunks
+  - Assign chunks to threads
+  - Process in parallel
+  - Combine results
+- It is generally used for CPU-intensive tasks, Large datasets, Independent operations.
+```java
+List<UserDto> dtos =
+        users.parallelStream()
+             .map(user -> transform(user))
+             .toList();
+```
+
 ## Optional
 - `Optional<T>` is a container object that may or may not contain a non-null value. 
 - It represents the presence or absence of a value.
@@ -3498,6 +3516,47 @@ public record Rectangle(double length, double width) {
     - Projections
     - Configuration properties
 
+
+## Concurrency
+- Managing multiple tasks at the same time (interleaved execution)
+- Single CPU core is enough to achieve Concurrency.
+- It improves app responsiveness.
+- Examples
+  - Web server handling multiple requests
+  - UI + background processing
+  - Async API calls
+- In Java Concurrency is acheived using
+  - Threads
+  - ExecutorService
+  - CompletableFuture
+  - Locks
+```
+One CPU core
+Task A → Task B → Task A → Task B
+(switched rapidly)
+```
+
+## Parallelism
+- Executing multiple tasks at the same time (literally simultaneously)
+- Multiple CPU core is enough to achieve Concurrency.
+- It improves app performance.
+- All parallelism is concurrency. But not all concurrency is parallelism.
+- Examples
+  - Image processing
+  - Data analytics
+  - Machine learning workloads
+  - Batch processing
+- In Java Parallelism is acheived using
+  - Parallel Streams
+  - ForkJoinPool
+  - Virtual Threads (scalable concurrency)
+```
+Multiple CPU cores
+
+Core 1 → Task A
+Core 2 → Task B
+```
+
 ## Multithreading 
 - Multithreading is running multiple independent paths of execution (threads) within the same process (the JVM), so work can happen concurrently
 - A thread will share the same heap memory with other threads but has its own stack.
@@ -3571,6 +3630,42 @@ Thread-1 -> count = 2
 - `run()` - Execute this method.
 - `start()` turns a potential thread into a real concurrent thread, `run()` is jut the code that the thread executes.
 - `start()` is responsible for thread creation run `run()` is automatically called by the JVM after `start()`.
+
+## `wait()`, `sleep()`, `join()`, `notify()`, `notifyAll()`
+- `wait()`, `sleep()`, `join()` all seem similar because they all “pause” a thread—but they serve very different purposes.
+- `notify()`, `notifyAll()` and `wait()` are part of Java’s low-level thread coordination mechanism, used when threads need to signal each other about state changes.
+#### `wait()`
+```java
+object.wait();
+```
+- Thread waits for notification from another thread, until they call `notify()`.
+- Belongs to `Object`.
+
+#### `notify()`, `notifyAll()`
+```java
+object.wait();
+```
+- Used to wake up threads waiting on the same object’s monitor.
+- `notify()`→ wake ONE thread
+- `notifyAll()`→ wake ALL threads
+- Must be used with `wait()` and synchronized
+- Belongs to `Object`.
+
+#### `sleep()`
+```java
+Thread.sleep(1000);
+```
+- Thread pauses for a fixed time
+- It is used in Retry logic, delays, polling.
+#### `join()`
+```java
+thread.join();
+```
+- Current Thread waits for another thread to finish
+
+
+## Deadlocks
+- A deadlock occurs when two or more threads are waiting forever for each other to release resources.
 
 ## `volatile`
 - `volatile` ensures visibility of changes across threads.
@@ -3936,3 +4031,139 @@ Task 5 completed by pool-1-thread-1
 ```
 ## Race condition 
 ##  locks 
+
+## Daemon Threads
+- A daemon thread is a background thread that does not prevent the JVM from exiting.
+- While User threads are for important work, Daemon threads are used for background support work.
+- GC is a daemon thread. It is commonly used for Background monitoring, Logging systems, Cleanup tasks, Metrics collection.
+```java
+thread.setDaemon(true);
+thread.start();
+```
+```java
+public class DaemonFactory implements ThreadFactory {
+    public Thread newThread(Runnable r) {
+        Thread t = new Thread(r);
+        t.setDaemon(true);
+        return t;
+    }
+}
+```
+
+## ExecutorService
+- ExecutorService is an interface that Manages a pool of threads and executes submitted tasks asynchronously.
+- The developer submits the work, executor assigns workers by reusing the thread and controls concurrency and ensures that work gets done.
+### Types
+#### Fixed Thread Pool
+```java
+Executors.newFixedThreadPool(n)
+```
+- Commonly used and predictable.
+
+#### Cached Thread Pool
+```java
+Executors.newCachedThreadPool()
+```
+- Can create unlimited threads → dangerous
+
+#### Single Thread Executor
+```java
+Executors.newSingleThreadExecutor()
+```
+- Used for Sequential execution
+
+#### Scheduled Executor
+```java
+Executors.newScheduledThreadPool(n)
+```
+- Used for Periodic tasks
+
+### Methods
+#### submit()
+```java
+Future<?> future = executor.submit(task);
+```
+- Accepts Runnable or Callable
+- Returns Future
+
+#### execute()
+```java
+executor.execute(task);
+```
+- No return value
+- Simpler than submit()
+
+#### shutdown()
+```java
+executor.shutdownNow();
+```
+- Stops accepting new tasks
+- Finishes existing tasks
+
+#### shutdownNow()
+```java
+executor.shutdown();
+```
+- Attempts to stop immediately
+
+```java
+import java.util.concurrent.*;
+
+public class FutureExample {
+
+    public static void main(String[] args) throws Exception {
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        // Callable Task
+        Future<Integer> future = executor.submit(() -> {
+            Thread.sleep(1000);
+            return 42;
+        });
+
+        System.out.println("Result: " + future.get());
+
+        executor.shutdown();
+    }
+}
+```
+
+## Future
+- Future represents the result of an asynchronous computation that may not be available yet.
+```java
+//Without Future
+int result = doWork(); // blocks
+
+//With Future
+Future<Integer> future = executor.submit(task);
+// do other work
+int result = future.get(); // later
+```
+- `future.get()` - Waits (blocks) until result is ready. This is a limitation as it is blocking and defeats async benefits
+
+## CompletableFuture
+- CompletableFuture represents an asynchronous computation that can be completed later, with support for chaining, combining, and non-blocking execution.
+- CompletableFuture exists to fix problems with Future.
+- It ensures returns are non-blocking and enables chaining.
+```java
+public class BasicExample {
+
+    public static void main(String[] args) {
+
+        CompletableFuture<Integer> future =
+                CompletableFuture.supplyAsync(() -> {
+                    return 10 + 20;
+                });
+
+        Integer result = future.join(); // non-checked exception version of get()
+
+        System.out.println("Result: " + result);
+    }
+}
+```
+
+## Virtual Threads
+- A Virtual Thread is a lightweight thread managed by the JVM, not the OS.
+- Traditional threads are managed by OS and are resource heavy.
+- It is an important feature of Java 21
+
