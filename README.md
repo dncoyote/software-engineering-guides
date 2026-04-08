@@ -13,5 +13,7 @@
 [Notes](Notes/Kafka.md)  
 #### React 
 [Notes](Notes/React.md)  
+#### Misc 
+[Notes](Notes/Misc.md)  
 #### Challenges 
 [Notes](Notes/Challenges.md)  
