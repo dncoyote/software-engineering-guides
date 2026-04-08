@@ -238,6 +238,13 @@ System.out.println(s1 == s4); // true
 - Default value is `null`.
 - The reference variable itself is on the stack, but the object it refers to is stored in the heap.
 
+
+## Pass-by-Value, Pass-by-Reference in Java
+- Java is strictly pass-by-value. There is no pass-by-reference in Java.
+- Pass-by-Value - A copy of the variable’s value is passed to the method.
+- Pass-by-Reference - Original variable itself is passed to the method.
+- Eventhough for Non-Primitive Data Types (Reference Types), they hold reference value and not actual data, java passes this reference value by pass by value.
+
 ## What is a Wrapper class in Java?
 - A wrapper class in Java is a class that wraps a primitive data type into an object.
     - `int` → `Integer`
@@ -2500,6 +2507,79 @@ System.out.println(stack.pop());  // 20
         - Snapshot copy
         - Weakly consistent iteration
 
+## Error
+- Error is a subclass of `Throwable` that represents serious problems the application should NOT try to handle.
+- While Exceptions are recoverable, Error is non recoverable.
+- Error indicates that something fundamentally wrong with JVM or system resources
+- Errors are always Unchecked.
+- We can technically catch an error but it is not recommended.
+- Examples
+  - OutOfMemoryError
+  - StackOverflowError
+  - VirtualMachineError
+  - NoClassDefFoundError
+
+## StackOverflowError
+```
+Exception in thread "main" java.lang.StackOverflowError
+    at StackOverflowExample.recurse(StackOverflowExample.java:10)
+    at StackOverflowExample.recurse(StackOverflowExample.java:10)
+    ...
+```
+- StackOverflowError is a runtime error in Java that typically indicates a problem with method calls growing uncontrollably.
+- It occurs when the call stack exceeds its limit due to too many nested method calls.
+- It occurs in the stack memory area.
+- Every time a method is called, a new frame is pushed onto the stack.
+- When the stack keeps growing, memory limit is reached and application crashes.
+- Infinite Recursion is the most common cause of StackOverflowError.
+- To avoid StackOverflowError -
+  - Add base case to ensure correct recusion.
+  - Convert recursion → iteration
+  - Reduce recursion depth
+  - Increase stack size
+```java
+//Wrong
+public class StackOverflowExample {
+
+    public static void main(String[] args) {
+        recurse();
+    }
+
+    static void recurse() {
+        recurse(); // no base case ❌
+    }
+}
+
+//Correct
+public class StackOverflowExample {
+
+    public static void main(String[] args) {
+        int n = 5;
+        recurse(5);
+    }
+
+    static void recurse(int n) {
+      if (n == 0) return; // base case ✅
+    recurse(n - 1);
+}
+}
+```
+## OutOfMemoryError
+```
+java.lang.OutOfMemoryError: Java heap space
+```
+- OutOfMemoryError is one of the most critical JVM failures—it means your application has exhausted available memory and can no longer proceed safely.
+- It occurs when the JVM cannot allocate memory for an object because it has run out of space.
+- It occurs in the heap/metaspace memory area.
+- Memory Leak is the most common cause of OutOfMemoryError.
+- To avoid OutOfMemoryError -
+  - Fix memory leak
+  - Tune Heap Size
+  - Use efficient DS or streams
+  - Limit threads, use ExecutorService.
+  - Optimize object creation
+  - Use LRU cache instead of unbounded caching.
+
 ## Exception Handling
 - Exception handling in Java is a mechanism to handle runtime errors and exceptional situations that may occur during the execution of a program.
 - An exception is an event that disrupts the normal flow of a program during runtime.
@@ -3730,6 +3810,51 @@ Flag set to true
 Lock lock = new ReentrantLock();
 ```
 
+## Atomic Classes
+- Atomic classes provide thread-safe operations on single variables without using locks.
+- An **Atomic Operation** is one that executes completely or not at all, with no intermediate state visible to other threads.
+- Atomic Classes are fast and lock free and its is preferred over `synchronized` and Lock.
+- Types
+  - AtomicInteger
+  - AtomicLong
+  - AtomicBoolean
+  - AtomicReference
+```java
+AtomicInteger count = new AtomicInteger(0);
+AtomicLong value = new AtomicLong(0);
+AtomicBoolean flag = new AtomicBoolean(true);
+AtomicReference<Person> ref = new AtomicReference<>();
+```
+- CAS (Compare-And-Swap) is a core concept of Atomic classes, there are no locks involved and improves performance under low contention.
+```java
+counter.compareAndSet(expected, newValue);
+
+If current value == expected
+    → update
+Else
+    → retry
+```
+
+## JMM
+- Java Memory Model (JMM) is a concept in Java concurrency that explains how threads interact with memory and with each other.
+- It defines how threads read and write variables, and how changes become visible across threads.
+- Without JMM, threads may see stale values, operations may be reordered and Race conditions occur.
+#### Characteristics
+```
+Main Memory (Heap)
+   ↑      ↓
+Thread 1   Thread 2
+(Local Working Memory / CPU cache)
+```
+- Each thread has its own working memory (cache)
+- Shared variables live in main memory
+- Threads copy values locally
+- JMM ensures **Visibility**, when one thread updates a variable, other threads can see it. This is achieved using volatile, synchronized, Lock
+- JMM ensures **Atomicity**.
+- JMM ensures **Ordering/Reordering**, it will reorder instructions for performance optimization.
+##### Happens-Before Rule
+- Happens-Before Rule is the core of JMM - If A happens-before B, then changes in A are visible to B.
+
 ## Print Even and Odd numbers synchronously
 - We have three common ways to create thread.
     - Extending Thread class
@@ -4029,8 +4154,88 @@ Task 4 completed by pool-1-thread-3
 Task 6 completed by pool-1-thread-2
 Task 5 completed by pool-1-thread-1
 ```
-## Race condition 
-##  locks 
+
+## Race Condition
+- Race condition happens when multiple threads access and modify shared data at the same time, and the final result depends on the unpredictable order of execution.
+- This is fixed using `synchronized`, `Lock` and Atomic classes.
+- `volatile` only solves visibility problem.
+
+## Locks
+- A Lock is an explicit synchronization mechanism that allows threads to control access to shared resources with more flexibility than synchronized.
+- Locks provide fine-grained control over concurrency and is preferred over `synchronized`.
+```java
+Lock lock = new ReentrantLock();
+```
+- Types
+  - ReentrantLock
+  - ReadWriteLock - Multiple readers allowed, Only one writer allowed.
+
+```java
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+class Counter {
+
+    private int count = 0;
+
+    private final Lock lock = new ReentrantLock(); // LOCK IS HERE
+
+    public void increment() {
+        lock.lock(); // acquire lock
+        try {
+            count++;
+        } finally {
+            lock.unlock(); // release lock
+        }
+    }
+
+    public int getCount() {
+        return count;
+    }
+}
+
+-----
+
+public class LockDemo {
+
+    public static void main(String[] args) throws InterruptedException {
+
+        Counter counter = new Counter();
+
+        Runnable task = () -> {
+            for (int i = 0; i < 1000; i++) {
+                counter.increment();
+            }
+        };
+
+        Thread t1 = new Thread(task);
+        Thread t2 = new Thread(task);
+
+        t1.start();
+        t2.start();
+
+        t1.join();
+        t2.join();
+
+        System.out.println("Final count: " + counter.getCount());
+    }
+}
+
+// OP
+Final count: 2000
+
+// Both threads increment counter.
+```
+#### Flow
+```java
+Thread 1 → counter.increment()
+Thread 2 → counter.increment()
+```
+- Both Threads Run
+- Lock Comes Into Play inside `increment()` - `lock.lock()`. Only one thread can enter here at a time.
+- Thread 1 → acquires lock → increments → unlocks
+- Thread 2 → waits → acquires lock → increments → unlocks
+- Final count is 2000, without Lock it would be less than 2000 because of Race conditions.
 
 ## Daemon Threads
 - A daemon thread is a background thread that does not prevent the JVM from exiting.
