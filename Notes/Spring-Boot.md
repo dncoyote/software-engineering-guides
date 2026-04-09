@@ -63,7 +63,7 @@ OS / Cloud / Container
 - Controller returns object after converting to JSON using HttpMessageConverters.
 - DispatcherServlet writes JSON back to HTTP response.
 
-## Inversion of Controller
+## Inversion of Control
 - Inversion of Control is a design principle where the control of object creation and lifecycle is transferred from your application code to a framework/container.
 - In Spring, this is implemented using Dependency Injection through the `ApplicationContext`, which manages beans and their lifecycle.
 - Bean is simply an object managed by the IOC Container.
