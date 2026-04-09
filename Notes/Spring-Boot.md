@@ -133,6 +133,302 @@ public void setPaymentService(PaymentService paymentService) {
 }
 ```
 
+## Constructor Injection vs Field Injection
+### Constructor Injection
+- Dependencies are provided via constructor parameters when the object is created.
+```java
+@Service
+public class UserService {
+
+    private final UserRepository userRepository;
+
+    // Dependency is required at creation time
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+}
+```
+- Spring resolves dependency first
+- Object is created fully initialized
+#### Characteristics
+- Enforces Required Dependencies
+- Supports Immutability - Once set, cannot be changed, so its thread safe and immutable
+- Supports Clean Unit Testing
+- Better Design when constructors have many dependencies.
+### Field Injection
+- Dependencies are injected directly into class fields using `@Autowired`.
+```java
+@Service
+public class UserService {
+
+    @Autowired
+    private UserRepository userRepository; // injected by Spring AFTER object creation
+
+}
+```
+- Spring creates object → new `UserService()`
+- Then uses reflection to inject `userRepository`
+- Object is created in an incomplete state first
+
+### Circular Dependency
+- A circular dependency occurs when two or more beans depend on each other in a cycle.
+- Constructor Injection exposes Circular Dependency.
+
+## Application Properties 
+- Configuration files used by Spring Boot to externalize settings like -
+    - database configs
+    - ports
+    - feature flags
+    - API keys
+- We can store configuration in `application.properties` or `application.yml`
+
+```
+//application.properties
+server.port=8080
+spring.datasource.url=jdbc:mysql://localhost:3306/dev_db
+
+//application.yml
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/dev_db
+```
+- We can create different configs for different environments - application-dev.yml, application-prod.yml, application-test.yml
+- We can mention which profile to use in command line interface or store and use in an env variable.
+```
+java -jar app.jar --spring.profiles.active=prod
+
+//env var
+export SPRING_PROFILES_ACTIVE=prod
+```
+
+### Accessing Properties
+##### `@Value`
+```java
+@Value("${server.port}")
+private int port;
+```
+##### `@ConfigurationProperties`
+```java
+@ConfigurationProperties(prefix = "app")
+@Component
+public class AppConfig {
+
+    private String name;
+    private int timeout;
+
+    // getters and setters
+}
+```
+```
+app:
+  name: MyApp
+  timeout: 30
+```
+
+## Spring Profiles
+- Spring Profile is a feature that allows you to activate different configurations and beans based on the environment your application is running in.
+- This helps us to manage multiple environments in one application.
+- We can have different configs for different environments - application.yml(default), application-dev.yml, application-prod.yml, application-test.yml
+- During startup Spring checks active profile (dev) and loads application.yml, application-dev.yml
+- Spring also merges configs (profile overrides base)
+- We can also have multiple profiles as active by providing profiles as comma separated.
+
+## `@Profile`
+- `@Profile` is an annotation in Spring Framework used to conditionally load beans based on the active profile.
+```java
+@Configuration
+public class DataSourceConfig {
+
+    @Bean
+    @Profile("dev")
+    public DataSource devDataSource() {
+        return new H2DataSource(); // in-memory DB
+    }
+
+    @Bean
+    @Profile("prod")
+    public DataSource prodDataSource() {
+        return new MySQLDataSource(); // real DB
+    }
+}
+```
+- Only ONE bean is loaded depending on profile.
+
+## `@RestController`
+- `@RestController` is an annotation that marks a class as a REST API controller, where methods handle HTTP requests and return values are automatically converted to HTTP responses (usually JSON).
+- `@RestController` is a combination of `@Controller` and `@ResponseBody`.
+- Spring handles everything including request mapping, serialization, response building
+```java
+@RestController
+@RequestMapping("/orders")
+public class OrderController {
+
+    private final OrderService service;
+
+    public OrderController(OrderService service) {
+        this.service = service;
+    }
+
+    @PostMapping
+    public ResponseEntity<Order> createOrder(@RequestBody OrderRequest request) {
+        Order order = service.createOrder(request);
+        return ResponseEntity.ok(order);
+    }
+}
+```
+
+## `@Controller`
+- Marks class as a web controller.
+- Returns view (HTML) instead of JSON/XML.
+
+## `@ResponseBody`
+- `@ResponseBody` is an annotation used to convert return value of this method and write it directly to the HTTP response body (JSON/XML)
+- Spring uses HttpMessageConverters to convert objects to JSON/XML.
+
+## `@RequestBody`
+- `@RequestBody`is an annotation used to bind the HTTP request body (usually JSON) to a Java object.
+- Spring uses Jackson to covert JSON to Java object.
+```java
+//Clients sends JSON
+{
+  "name": "John",
+  "email": "john@example.com"
+}
+
+// Spring automatically reads request body and converts JSON to Java object
+@PostMapping("/users")
+public User createUser(@RequestBody User user) {
+    return user;
+}
+```
+
+## `@PathVariable`
+- `@PathVariable`is an annotation used to extract values from the URL path and bind them to method parameters.
+- `@PathVariable` are used commonly for resource identifiers.
+- Multiple path variables are possible.
+```java
+//Clients sends request
+/users/101
+
+// Spring automatically extracts {id} = 101 and converts Long
+@GetMapping("/users/{id}")
+public String getUser(@PathVariable Long id) {
+    return "User ID: " + id;
+}
+```
+
+## `@RequestParam`
+- `@RequestParam`is an annotation used to extract values from the query parameters (or form data) of an HTTP request and bind them to method parameters.
+- `@RequestParam` are used commonly for filtering / pagination / sorting / optional input.
+- We can make it optional by `@RequestParam(required = false)`
+```java
+//Clients sends request
+/users?page=1&size=10
+
+// Spring automatically extracts page and size and converts Integer
+@GetMapping("/users")
+public String getUsers(@RequestParam Integer page,
+                       @RequestParam Integer size) {
+    return "Page: " + page + ", Size: " + size;
+}
+```
+
+
+## `@RequestMapping`
+- `@RequestMapping`is an annotation used to map HTTP requests (URL + method + other conditions) to handler methods or classes.
+- Usually added at class level, we can add in method slso.
+```java
+@RestController
+@RequestMapping("/orders")
+public class OrderController {
+}
+```
+
+## `@GetMapping`
+- `@GetMapping` annotations is used to map HTTP requests of GET methods to controller methods.
+- Retrieve data
+- Idempotent - Yes
+```java
+@GetMapping("/users/{id}")
+public User getUser(@PathVariable Long id) {
+    return service.getUser(id);
+}
+```
+
+## `@PostMapping`
+- `@PostMapping` annotation is used to map HTTP requests of POST methods to controller methods.
+- Create new resource
+- Idempotent - No
+- POST methods can be made idempotent by using Idempotency-key
+```java
+@PostMapping("/users")
+public User createUser(@RequestBody CreateUserRequest req) {
+    return service.create(req);
+}
+```
+
+## `@PutMapping`
+- `@PutMapping` annotation is used to map HTTP requests of PUT methods to controller methods.
+- Update or replace resource
+- Idempotent - Yes
+```java
+@PutMapping("/users/{id}")
+public User updateUser(@PathVariable Long id,
+                       @RequestBody UpdateUserRequest req) {
+    return service.update(id, req);
+}
+```
+
+## `@PatchMapping`
+- `@PatchMapping` annotation is used to map HTTP requests of PATCH methods to controller methods.
+- Updates only some fields
+- Idempotent - No
+```java
+@PatchMapping("/users/{id}")
+public User updateUser(@PathVariable Long id,
+                       @RequestBody Map<String, Object> updates) {
+
+    return service.partialUpdate(id, updates);
+}
+```
+
+## `@DeleteMapping`
+- `@DeleteMapping` annotation is used to map HTTP requests of DELETE methods to controller methods.
+- Delete resource
+- Idempotent - Yes
+```java
+@DeleteMapping("/users/{id}")
+public void deleteUser(@PathVariable Long id) {
+    service.delete(id);
+}
+```
+
+## `@Valid`
+- `@Valid` is an annotation used to trigger validation on an object using the constraints defined on its fields.
+- Suppose we define object validations in DTO
+```java
+public class CreateUserRequest {
+
+    @NotBlank(message = "Name is required")
+    private String name;
+
+    @Email(message = "Invalid email")
+    private String email;
+
+    // getters & setters
+}
+```
+- Spring will NOT automatically validate unless told to by adding `@Valid`.
+```java
+@PostMapping("/users")
+public User createUser(@Valid @RequestBody CreateUserRequest request) {
+    return service.create(request);
+}
+```
+
 ## `@Component`
 - `@Component` is an annotation used to mark a class as a Spring-managed bean.
 - When Spring Boot starts, it scans the project and automatically detects classes annotated with `@Component` and registers them in the `ApplicationContext`.
@@ -266,6 +562,16 @@ public class DatabaseConfig {
     }
 }
 ```
+
+## `@Bean` vs `@Component`
+| Properties | `@Component` | `@Bean`|
+
+| --- | --- | --- |
+| Definition| Marks a class so that Spring automatically detects and registers it as a bean during component scanning. | Marks a method inside a @Configuration class to manually create and register a bean. |
+| Control | Automatic - Spring controls obj creation | Manual - Dev decides |
+| Location | On class| On method |
+| Use case | Your own classes | External / complex objects / Third-party classes |
+
 ## `@SpringBootApplication`
 - `@SpringBootApplication` marks the typical Spring Boot entry point.
 - It is a meta-annotation that combines three key Spring annotations
