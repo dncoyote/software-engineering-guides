@@ -435,8 +435,8 @@ public User createUser(@Valid @RequestBody CreateUserRequest request) {
 #### Internal flow
 - App starts
 - Spring Boot starts the `ApplicationContext`
--2️⃣ It performs Component Scanning
--3️⃣ It finds classes annotated with:
+- It performs Component Scanning
+- It finds classes annotated with:
 
 ```
 @Component
@@ -444,7 +444,6 @@ public User createUser(@Valid @RequestBody CreateUserRequest request) {
 @Repository
 @Controller
 ```
-- 
 - It creates objects (beans) and stores them in the IoC container
 ### Example
  
@@ -564,14 +563,12 @@ public class DatabaseConfig {
 ```
 
 ## `@Bean` vs `@Component`
-| Properties | `@Component` | `@Bean`|
-
-| --- | --- | --- |
-| Definition| Marks a class so that Spring automatically detects and registers it as a bean during component scanning. | Marks a method inside a @Configuration class to manually create and register a bean. |
-| Control | Automatic - Spring controls obj creation | Manual - Dev decides |
-| Location | On class| On method |
-| Use case | Your own classes | External / complex objects / Third-party classes |
-
+| Property   | `@Component`                                                                 | `@Bean`                                                                                   |
+|------------|------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| Definition | Marks a class so that Spring automatically detects and registers it as a bean during component scanning. | Marks a method inside a `@Configuration` class to manually create and register a bean. |
+| Control    | Automatic — Spring controls object creation                                  | Manual — Developer decides how the bean is created                                       |
+| Location   | On class                                                                     | On method                                                                                |
+| Use case   | Your own classes                                                             | External / complex objects / third-party classes                                          |
 ## `@SpringBootApplication`
 - `@SpringBootApplication` marks the typical Spring Boot entry point.
 - It is a meta-annotation that combines three key Spring annotations
