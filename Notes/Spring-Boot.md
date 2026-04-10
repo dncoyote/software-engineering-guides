@@ -429,6 +429,86 @@ public User createUser(@Valid @RequestBody CreateUserRequest request) {
 }
 ```
 
+## Spring Data JPA
+- Spring Data JPA is a module of Spring Boot that simplifies database access by providing abstraction over JPA (Java Persistence API) to interact with relational databases using repositories instead of boilerplate code.
+- Without Spring Data JPA we will need to write too much boilerplate and error-prone code that is hard to maintain.
+- Entities, Repository layer and Service layer form the core components of Spring Data JPA in an application.
+- Spring Data JPA supports CRUD Operations (Out of the Box)
+```java
+repo.save(user);         // create/update
+repo.findById(id);       // read
+repo.findAll();          // read all
+repo.deleteById(id);     // delete
+```
+- Spring Data JPA supports Query Methods that Spring generates automatically.
+```java
+List<User> findByEmail(String email);
+List<User> findByNameAndAge(String name, int age);
+```
+- Spring Data JPA supports Custom queries using JPQL and Native SQL
+```java
+//JPQL
+@Query("SELECT u FROM User u WHERE u.email = :email")
+User findUserByEmail(@Param("email") String email);
+```
+```java
+//Native SQL
+@Query(value = "SELECT * FROM users WHERE email = ?", nativeQuery = true)
+User findByEmail(String email);
+```
+
+## JpaRepository
+- JpaRepository is an interface in Spring Data JPA that provides ready-to-use CRUD operations, pagination, and advanced database interaction methods for JPA entities.
+```java
+public interface UserRepository extends JpaRepository<User, Long> {
+}
+```
+- CRUD Operations (Out of the Box)
+```java
+repo.save(user);         // create/update
+repo.findById(id);       // read
+repo.findAll();          // read all
+repo.deleteById(id);     // delete
+```
+- Existence checks
+```java
+repo.existsById(id);
+```
+- Count
+```java
+repo.count();
+```
+- Batch Operations
+```java
+repo.saveAll(users);
+repo.deleteAll();
+```
+- Pagination
+```java
+Page<User> page = repo.findAll(PageRequest.of(0, 10));
+```
+- Sorting
+```java
+repo.findAll(Sort.by("name").ascending());
+```
+- Query Methods
+```java
+List<User> findByEmail(String email);
+List<User> findByNameAndAge(String name, int age);
+```
+- JPQL and Native SQL
+```java
+//JPQL
+@Query("SELECT u FROM User u WHERE u.email = :email")
+User findUserByEmail(@Param("email") String email);
+```
+```java
+//Native SQL
+@Query(value = "SELECT * FROM users WHERE email = ?", nativeQuery = true)
+User findByEmail(String email);
+
+```
+
 ## `@Component`
 - `@Component` is an annotation used to mark a class as a Spring-managed bean.
 - When Spring Boot starts, it scans the project and automatically detects classes annotated with `@Component` and registers them in the `ApplicationContext`.
