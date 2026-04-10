@@ -663,7 +663,367 @@ public class DatabaseConfig {
     - Spring MVC configuration
 ### `@ComponentScan`
 - Tells Spring to scan packages for components and detects `@Component` and specialized component classes.
- 
+
+
+## API Gateway
+- API Gateway is an architectural component that acts as a single entry point for all client requests and routes them to appropriate backend services.
+- Without API Gateway -
+    - Client needs to keep track of too many endpoints.
+    - Tight Coupling 
+    - Security needs to be implemented across all microservices.
+- Types of API Gateway 
+    - Spring Cloud Gateway 
+    - Kong
+    - AWS API Gateway
+    - Nginx
+- Problems
+    - Single Point of Failure
+    - Increases Latency as there is an extra hop.
+    - Increases Complexity.
+```
+Client (Web/Mobile)
+        ↓
+   API Gateway
+   ↓    ↓    ↓
+User  Order  Payment
+Service Service Service
+```    
+##### Spring Cloud Gateway
+- Spring Cloud Gateway is used to build an API Gateway that routes, filters, and manages traffic to microservices.
+- Spring Cloud Gateway is built on Spring WebFlux, so its non-blocking, high throughput and scalable gateway.
+### Features
+##### Routing
+```
+/api/users → User Service  
+/api/orders → Order Service
+
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: http://localhost:8081
+          predicates:
+            - Path=/users/**
+```
+##### Authentication & Authorization
+- Helps us implement a centralized security system using JWT validation, OAuth2 integration.
+- IP Whitelisting / Blacklisting
+- CORS Handling
+
+##### Load Balancing
+- Distribute requests across instances
+
+##### Rate Limiting
+- Prevent abuse and DDoS
+- Throttle heavy users instead of blocking
+- Implement Quotas by Limiting usage per API key/user
+```
+filters:
+  - name: RequestRateLimiter
+    args:
+      redis-rate-limiter.replenishRate: 10
+      redis-rate-limiter.burstCapacity: 20
+```
+
+##### Logging & Monitoring
+- Helps us implement a centralized observability system.
+
+##### Request/Response Processing using Filters
+- Request/Response Transformation.
+- Header manipulation.
+- Payload validation.
+```
+filters:
+  - AddRequestHeader=X-App, MyApp
+```
+
+##### Request Aggregation
+- Combine multiple service calls
+
+##### Fault Tolerance
+- Circuit Breaker - Stop calling failing service
+- Retry Mechanism - Retry failed requests
+- Fallback Responses
+
+##### Response Caching
+- Implement Response Caching to reduce DB load.
+
+##### Versioning
+- Implement clean versioning to manage API evolution.
+
+
+## Service Discovery
+- Service Discovery is a mechanism that allows services to dynamically register, find and communicate with each other without hardcoding their locations (IP/port).
+- Without Service Discovery, we will need to keep track of IP's of all microservices (containers) and all instances that come and go.
+- Examples of API Gateway 
+    - Netflix Eureka
+    - Consul
+    - Zookeeper
+    - AWS ELB
+- Types
+    - Client-Side Discovery - client talks to registry and chooses the instance.
+    - Server-Side Discovery - LB picks the instance
+- Service Discovery also performs health checks to weed out dead instances.
+- Service Discovery also performs Dynamic Scaling and Load Balancing activities.
+```
+          ┌──────────────┐
+          │ Service      │
+          │ Registry     │
+          │ (Eureka)     │
+          └──────┬───────┘
+                 │
+     ┌───────────┼───────────┐
+     ↓           ↓           ↓
+ User Service  Order Service Payment Service
+     ↑
+     │
+   Client / Gateway
+```
+#### Implementation
+- In Spring Boot, service discovery is typically implemented using Spring Cloud. A service registry such as Eureka or Consul is introduced, each service registers itself under a logical name like `order-service`, and consumer services discover instances through Spring’s `DiscoveryClient` abstraction or declarative clients like Feign. Spring Cloud LoadBalancer can then choose a specific instance for each request. In Kubernetes-based deployments, discovery is often backed by Kubernetes services instead of Eureka.
+```
+Order Service starts
+   ↓
+Registers itself in registry
+   ↓
+Registry stores: order-service -> [host1:8082, host2:8082]
+   ↓
+User Service asks registry for "order-service"
+   ↓
+Gets one or more instances
+   ↓
+Calls one of them
+```
+##### Add Spring Cloud discovery dependency
+- For a Eureka-based setup, the client app adds the Eureka client starter, and the registry app adds the Eureka server starter.
+
+##### Give the service a logical name
+- That logical name is what other services discover, rather than using a hardcoded IP and port.
+```
+spring:
+  application:
+    name: order-service
+```
+
+##### Point the service to the registry
+```
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+```
+
+##### Start the registry
+- A dedicated Spring Boot app runs as the registry server. 
+- In the Eureka pattern, this is the central place where service instances register and where consumers look them up.
+
+##### Register services automatically
+- Once the discovery client dependency is on the classpath and configured, Spring Cloud wires in a discovery implementation.
+
+##### Discover and call another service
+- In code, this is commonly done through DiscoveryClient or OpenFeign with a logical service name
+- Spring Cloud Gateway using discovery-based routing
+
+## Load Balancer
+- Load Balancer is a component that distributes incoming requests across multiple service instances to ensure high availability, scalability, and reliability.
+- Without LB, a single service instance will be overloaded and if one system fails then the whole system fails.
+
+### Types of LB
+#### Layer 4 (Transport Layer)
+- Works at TCP/UDP level
+    - based on IP + Port
+    - faster
+    - less intelligent
+- Example:
+    - AWS NLB
+#### Layer 7 (Application Layer)
+- Works at HTTP level
+    - path-based routing
+    - header-based routing
+    - smarter decisions
+- Example:
+    - Nginx
+    - API Gateway
+    - Spring Cloud Gateway
+
+### LB Algorithms
+#### Round Robin
+```
+Req1 → Instance1
+Req2 → Instance2
+Req3 → Instance3
+```
+- Simple, commonly used.
+
+#### Least Connections
+- Send request to least busy instance
+
+#### Weighted Round Robin
+```
+Instance1 (weight 2)
+Instance2 (weight 1)
+```
+- Instance1 gets more traffic.
+
+#### IP Hash
+- Same user gets to use the same server.
+
+## Rate Limiter
+- Rate Limiter is a mechanism that restricts the number of requests a client can make within a specific time window.
+- Without rate limiting -
+    - server overload
+    - DDoS attacks
+    - resource exhaustion
+- This mechanism protects API's, prevents abuse and scraping attempts.
+- We can limit on the basis of IP,  user ID or API Key.
+- Rate Limiter is generally applied at
+    - API Gateway (most common)
+    - Microservices
+    - Load balancer layer
+    - CDN (Cloudflare, Akamai)
+
+### Implementation
+##### Spring Cloud Gateway + Redis (Recommended)
+- A Redis rate limiter is a distributed rate limiter that stores counters, tokens, timestamps, or bucket state in Redis so all app instances enforce the same limit.
+- Without Redis, if you run 3 instances of your app and each keeps its own in-memory counter, the user can effectively get 3 times the intended quota. Redis fixes that by giving all instances one shared source of truth. This is why Redis-backed rate limiting is so common in gateways and public APIs
+- Every request checks and updates rate-limit state in Redis, so the rule is enforced globally across all nodes (Shared state). 
+- Token bucket is the most common algorithm used in Rate Limiter
+###### Token Bucket
+- Imagine a bucket:
+    - max capacity = 20 tokens
+    - refill rate = 10 tokens per second
+    - each request consumes 1 token
+- If the bucket has tokens, the request is allowed.
+- If the bucket is empty, the request is rejected.
+- This gives you both:
+    - average sustained rate control
+    - short burst tolerance
+```
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: lb://user-service
+          predicates:
+            - Path=/users/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@userKeyResolver}"
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.requestedTokens: 1
+```
+##### Resilience4j (Service Level)
+```java
+@RateLimiter(name = "userService")
+public String getUser() {
+    return "user";
+}
+```
+
+## Caching
+- Caching is a technique to store frequently accessed data in a faster storage layer to avoid repeated expensive computations or database calls.
+- Without Caching, we will need to constantly query the DB increasing its loads, reducing response and it scales poorly.
+- With Cache, first call is made to the DB and subsequent calls are from the cache.
+- TTL - The duration for which a cached entry remains valid before it is automatically expired.
+    - It is configured in the yml file.
+```java
+@Cacheable("users")
+public User getUser(Long id) {
+    return userRepository.findById(id);
+}
+```
+#### Types
+- In-Memory Cache
+    - Stored inside application
+    - They are fast but not distributed
+    - Examples:
+        - ConcurrentHashMap
+        - Caffeine
+- Distributed Cache
+    - Shared across instances
+    - They are Scalable and Consistent
+    - Examples:
+        - Redis
+        - Memcached
+- CDN
+    - Edge Caching
+        - Cloudflare
+        - AWS Cloudfront
+
+#### Caching in Spring Boot
+- Enable Caching by adding `@EnableCaching` that activates Spring AOP based caching
+```java
+@EnableCaching
+@SpringBootApplication
+public class App {
+}
+```
+- Add cache dependency in pom.xml.
+- Use `@Cacheable`, this will
+    - Call method
+    - Spring Proxy intercepts
+    - Check cache
+    - If present → return cached value
+    - Else → call method → store result
+```java
+@Service
+public class UserService {
+
+    @Cacheable(value = "users", key = "#id")
+    public User getUser(Long id) {
+        simulateSlowCall();
+        return userRepository.findById(id).orElseThrow();
+    }
+}
+```
+##### Other core annotations
+- `@CacheEvict` - Remove stale data.
+```java
+@CacheEvict(value = "users", key = "#id")
+public void deleteUser(Long id)
+```
+- `@CachePut` - Updates cache everytime.
+```java
+@CachePut(value = "users", key = "#user.id")
+public User updateUser(User user)
+```
+- `@Caching` - For multiple cache annotations
+```java
+@Caching(evict = {
+    @CacheEvict(value = "users", key = "#id"),
+    @CacheEvict(value = "usersList", allEntries = true)
+})
+```
+
+##### Caching strategy
+- Cache Aside (Default) - Used by `@Cacheable`
+```
+App → Cache → DB → Cache
+```
+- Evict on Write - Most common pattern
+```
+Update DB → Evict cache → reload later
+```
+```java
+@Service
+public class ProductService {
+
+    @Cacheable(value = "products", key = "#id")
+    public Product getProduct(Long id) {
+        return repo.findById(id);
+    }
+
+    @CacheEvict(value = "products", key = "#id")
+    public void deleteProduct(Long id) {
+        repo.deleteById(id);
+    }
+}
+```
+
 ## Circuit Breaker
 - A Circuit Breaker is a design pattern used in distributed systems to prevent cascading failures by stopping calls to a failing service temporarily.
 - Consider a system
