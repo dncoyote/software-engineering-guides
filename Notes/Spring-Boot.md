@@ -649,11 +649,25 @@ public class DatabaseConfig {
 | Control    | Automatic — Spring controls object creation                                  | Manual — Developer decides how the bean is created                                       |
 | Location   | On class                                                                     | On method                                                                                |
 | Use case   | Your own classes                                                             | External / complex objects / third-party classes                                          |
+
+
+## `@Stereotype`
+- `@Stereotype` annotation is a marker annotation that tells Spring that a class is a Spring managed component (bean).
+
+| Annotations| Used for|
+| --- | --- |
+|`@Component` | Generic component|
+| `@Service`| Service layer|
+| `@Repository`| Data access layer|
+| `@Controller`| Web MVC controller|
+| `@RestController`| Rest API controller|
+
 ## `@SpringBootApplication`
 - `@SpringBootApplication` marks the typical Spring Boot entry point.
 - It is a meta-annotation that combines three key Spring annotations
 ### `@Configuration`
 - Marks the class as a configuration class and tells Spring that this class can define beans.
+- Used for third-party classes, custom initialization, external configs, manual bean creation.
 ### `@EnableAutoConfiguration` 
 - Tells Spring Boot to automatically configure beans based on dependencies in the class path.
 - If you add `spring-boot-starter-web`, Spring Boot automatically configures
@@ -662,9 +676,25 @@ public class DatabaseConfig {
     - Embedded Tomcat
     - Spring MVC configuration
 ### `@ComponentScan`
-- Tells Spring to scan packages for components and detects `@Component` and specialized component classes.
+- Tells Spring to scan packages for components and detects `@Component` and specialized component classes like `@Component`, `@Service` etc.
+- We can specify to scan specific packages or classes using `@ComponentScan(basePackages = "com")`, `@ComponentScan(basePackageClasses = UserService.class)`.
 
+## `@ConfigurationProperties`
+- `@ConfigurationProperties` is used to bind external configuration (application.yml/properties) to Java objects.
+```java
+app:
+  name: MyApp
+  timeout: 5000
 
+@ConfigurationProperties(prefix = "app")
+public class AppProperties {
+
+    private String name;
+    private int timeout;
+
+    // getters/setters
+}
+```
 ## API Gateway
 - API Gateway is an architectural component that acts as a single entry point for all client requests and routes them to appropriate backend services.
 - Without API Gateway -
