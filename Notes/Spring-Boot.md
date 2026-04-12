@@ -1055,7 +1055,7 @@ public class ProductService {
 ```
 
 ## Circuit Breaker
-- A Circuit Breaker is a design pattern used in distributed systems to prevent cascading failures by stopping calls to a failing service temporarily.
+- A Circuit Breaker is a design pattern used in distributed systems to prevent cascading failures by stopping calls to a failing service temporarily and return a fallback response instead.
 - Consider a system
 
 ```java
@@ -1068,7 +1068,7 @@ User Service → Payment Service → Bank API
     - Entire system slows down
     - Eventually → full outage
     - This is called : Cascading failure
-
+- It is generally implemented in Spring Boot using Resilience4j (Netflix Hystrix - deprecated)
 ### States
 - CLOSED (Normal state)
     - Requests pass through
@@ -1110,6 +1110,13 @@ resilience4j:
         waitDurationInOpenState: 10s
         permittedNumberOfCallsInHalfOpenState: 3
 ```
+- Commonly used in -
+    - External APIs
+    - Microservices
+    - Payment gateways
+    - Database (rare but possible)
+    - Messaging systems
+
 ### Flow
 - When `pay()` is called:
 - Proxy intercepts method
@@ -1119,6 +1126,49 @@ resilience4j:
 - If OPEN → immediately call fallback
 - After wait time → HALF-OPEN
 - Trial calls determine next state
+
+## Retry Pattern
+- Retry is a fault-tolerance pattern where a failed operation is automatically attempted again after a failure, usually with some delay and limit on attempts.
+- Failures are often temporary not permanent, they can occur due to Network glitch, Service warming up, Temporary overload, DB connection timeout.
+- Retry Pattern assumes that failure is transient and wait for some time until it works.
+- Retry Pattern is commonly implemented in Spring Boot using Resilience4j.
+- Use this pattern only when the operation is idempotent.
+```java
+@Service
+public class OrderService {
+
+    @Retry(name = "orderService", fallbackMethod = "fallback")
+    public String placeOrder() {
+
+        // Simulate random failure
+        if (new Random().nextBoolean()) {
+            throw new RuntimeException("Temporary failure");
+        }
+
+        return "Order placed successfully";
+    }
+
+    // Fallback method
+    public String fallback(Exception ex) {
+        return "Fallback: Could not place order";
+    }
+}
+```
+```
+resilience4j:
+  retry:
+    instances:
+      orderService:
+        maxAttempts: 3
+        waitDuration: 1s
+```
+### Flow
+- Wraps your method call
+- Intercepts exceptions
+- Decides:
+    - Should retry?
+    - How long to wait?
+    - When to stop?
 
 ## Filter 
 - A Filter is a component that intercepts HTTP requests and responses at the Servlet container level before the request reaches Spring MVC.
