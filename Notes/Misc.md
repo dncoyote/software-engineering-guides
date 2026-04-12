@@ -92,7 +92,7 @@ Client → TLS Handshake → Secure Connection → HTTP over TLS
 //AuthN
 POST /login
 {
-  "email": "bilal@example.com",
+  "email": "john@example.com",
   "password": "123456"
 }
 ```

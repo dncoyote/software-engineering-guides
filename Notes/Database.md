@@ -112,16 +112,16 @@ JOIN orders o ON u.id = o.user_id;
 ```json
 //today
 {
-  "name": "Bilal",
+  "name": "John",
   "skills": ["Java", "Spring"],
   "social": {
-    "twitter": "@bilal"
+    "twitter": "@john"
   }
 }
 
 //tomorrow
 {
-  "name": "Bilal",
+  "name": "John",
   "skills": ["Java"],
   "certifications": ["AWS"]
 }
@@ -154,6 +154,22 @@ JOIN orders o ON u.id = o.user_id;
 ###### Consistent Reads are mandated 
 
 ## ACID
+- ACID is a set of four guarantees that ensure reliable and correct transaction processing in relational databases.
+    - A → Atomicity
+    - C → Consistency
+    - I → Isolation
+    - D → Durability
+Supported by systems like:
+    - PostgreSQL
+    - MySQL
+### Atomicity
+- A transaction is fully completed or fully rolled back.
+### Consistency
+- A transaction must bring the database from one valid state to another valid state.
+### Isolation
+- Transactions execute as if they are independent of each other.
+### Durability
+- Once a transaction is committed, it is permanently stored, even if system crashes.
 
 ## WHERE vs HAVING
 - `WHERE`
@@ -278,6 +294,14 @@ CREATE UNIQUE INDEX idx_email ON users(email);
 #### Covering Index
 - A Covering Index is an index that contains all the columns required to satisfy a query, so the database does NOT need to access the table.
 
+## Sharding
+- Sharding is a technique of splitting a large dataset across multiple database nodes (shards) so that each node stores only a subset of the data.
+- It enables horizontal scaling, allowing applications to handle increased data volume and high traffic
+### Types
+- Range based Sharding
+- Hash based Sharding
+- Directory based Sharding
+
 ## Find average of salary in each department
 
 ```sql
@@ -299,43 +323,139 @@ GROUP BY d.name;
 ```
 
 ## JOIN Queries
+- Consider we have two tables `Customers` and `Orders`.
+
+| customer_id| name|
+| --- | --- |
+| 1| Alice|
+| 2| Bob|
+| 3| Charlie|
+
+
+
+| order_id| customer_id|
+| --- | --- |
+| 101| 1|
+| 102| 1|
+| 103| 2|
+| 104| 4|
 #### INNER JOIN
 - Returns records that have matching values in both tables.
 - We can use `INNER JOIN` or `JOIN`.
 
 ```sql
-SELECT Orders.OrderID, Customers.CustomerName
-FROM Orders
-INNER JOIN Customers ON Orders.CustomerID = Customers.CustomerID;
+SELECT c.name, o.order_id
+FROM Customers c
+INNER JOIN Orders o
+ON c.customer_id = o.customer_id;
 ```
 
+| name| order_id|
+| --- | --- |
+| Alice| 101|
+| Alice| 102|
+| Bob| 103|
 #### LEFT JOIN (or LEFT OUTER JOIN)
 - Returns all records from the left table (table1) and the matched records from the right table (table2). The result is NULL from the right side if there is no match.
 
 ```sql
-SELECT Orders.OrderID, Customers.CustomerName
-FROM Orders
-LEFT JOIN Customers ON Orders.CustomerID = Customers.CustomerID;
+SELECT c.name, o.order_id
+FROM Customers c
+LEFT JOIN Orders o
+ON c.customer_id = o.customer_id;
 ```
 
+
+| name| order_id|
+| --- | --- |
+| Alice| 101|
+| Alice| 102|
+| Bob| 103|
+| Charlie| NULL|
 #### RIGHT JOIN (or RIGHT OUTER JOIN)
 - Returns all records from the right table (table2) and the matched records from the left table (table1). The result is NULL from the left side if there is no match.
 
 ```sql
-SELECT Orders.OrderID, Customers.CustomerName
-FROM Orders
-RIGHT JOIN Customers ON Orders.CustomerID = Customers.CustomerID;
+SELECT c.name, o.order_id
+FROM Customers c
+RIGHT JOIN Orders o
+ON c.customer_id = o.customer_id;
 ```
 
+
+| name| order_id|
+| --- | --- |
+| Alice| 101|
+| Alice| 102|
+| Bob| 103|
+| NULL| 104|
 #### FULL JOIN (or FULL OUTER JOIN)
 - Returns all records when there is a match in either left (table1) or right (table2) table.
 
 ```sql
-SELECT Orders.OrderID, Customers.CustomerName
-FROM Orders
-FULL JOIN Customers ON Orders.CustomerID = Customers.CustomerID;
+SELECT c.name, o.order_id
+FROM Customers c
+FULL JOIN Orders o
+ON c.customer_id = o.customer_id;
 ```
 
+
+| name| order_id|
+| --- | --- |
+| Alice| 101|
+| Alice| 102|
+| Bob| 103|
+| Charlie| NULL|
+| NULL| 104|
+#### CROSS JOIN
+- Returns all combinations (Cartesian product)
+- It does NOT care about matching 
+- It ignores relationships completely
+- It just produces combinations
+```sql
+SELECT c.name, o.order_id
+FROM Customers c
+CROSS JOIN Orders o;
+```
+
+
+| name| order_id|
+| --- | --- |
+| Alice| 101|
+| Alice| 102|
+| Alice| 103|
+| Alice| 104|
+| Bob| 101|
+| Bob| 102|
+| Bob| 103|
+| Bob| 104|
+| Charlie| 101|
+| Charlie| 102|
+| Charlie| 103|
+| Charlie| 104|
+#### SELF JOIN
+- A table joined with itself.
+- Consider this table `Employees`
+
+| id| name| manager_id|
+| --- | --- | --- |
+| 1| Alice| NULL|
+| 2| Bob| 1|
+| 3| Charlie| 1|
+
+```sql
+SELECT e.name AS employee, m.name AS manager
+FROM employees e
+LEFT JOIN employees m
+ON e.manager_id = m.id;
+```
+
+
+| employee| manager|
+| --- | --- |
+| Alice| NULL|
+| Bob| Alice|
+| Charlie| Alice|
 ## GROUP BY
 
 - `GROUP BY` clause is used to group rows that have the same values in specified columns into summary rows.
@@ -520,13 +640,24 @@ INSERT INTO author_book (author_id, book_id) VALUES
 (2, 101),  -- Author B wrote Book X as well
 (3, 103);  -- Author C wrote Book Z
 ```
+
+## Partition
+- A Partition is a situation where a distributed system is split into two or more groups of nodes that cannot communicate with each other due to a network failure.
+
 ## CAP Theorem 
+- CAP Theorem states that in a distributed system, you can only guarantee two out of the following three at the same time:
+    - C → Consistency - Every read gets the latest write.
+    - A → Availability - Every request gets a response, even if data is stale.
+    - P → Partition Tolerance - System continues to operate despite network failures.
+- In the presence of a network partition, the system must choose between consistency and availability. 
+- Most modern systems understands that network failures can happen so Partition Tolerance cannot be guaranteed so they choose either CP (MongoDB) or AP (Cassandra, DynamoDB) based on business requirements.
+
 
 ## Normalization
 - Organizing data to avoid redundancy.
 
 ## MongoDB
-- MongoDB is a document-oriented NoSQL database that stores data as JSON-like documents (BSON) instead of rows and columns.
+- MongoDB is a document-oriented NoSQL database that stores data as JSON-like documents (Binary JSON - BSON) instead of rows and columns.
 
 ```
 Collections → Documents → Fields → Embedded Data

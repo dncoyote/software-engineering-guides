@@ -1330,7 +1330,7 @@ class User implements Cloneable {
 // in other part of the code 
 
 User u1 = new User();
-u1.name = "Bilal";
+u1.name = "John";
 
 User u2 = (User) u1.clone();
 ```
