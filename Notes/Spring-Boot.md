@@ -695,6 +695,33 @@ public class AppProperties {
     // getters/setters
 }
 ```
+
+## Spring Cloud 
+- Spring Cloud is a set of tools and frameworks built on top of Spring Boot to help you build distributed systems and microservices.
+
+#### Core Components
+- Service Discovery
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+public class OrderServiceApplication {}
+```
+
+- API Gateway
+- Load Balancer
+```java
+@Bean
+@LoadBalanced
+public RestTemplate restTemplate() {
+    return new RestTemplate();
+}
+```
+- Circuit Breaker
+- Retry
+- Config Server
+- Distributed Tracing
+
 ## API Gateway
 - API Gateway is an architectural component that acts as a single entry point for all client requests and routes them to appropriate backend services.
 - Without API Gateway -
@@ -899,6 +926,84 @@ Instance2 (weight 1)
 #### IP Hash
 - Same user gets to use the same server.
 
+## Spring Cloud Config Server
+- Spring Cloud Config Server is a centralized service that stores and serves configuration properties for multiple applications (microservices).
+- Without Config Server, there is risk of inconsistency and config duplication, it is also hard to update config changes and we will need to redeploy all services for a single config change.
+- It stores configuration in a Git repository and serves it to services at runtime. It supports environment-based configurations, dynamic refresh, and version control, helping maintain consistency and flexibility across distributed systems.
+```
+         +----------------------+
+         |   Git Repository     |
+         | (config files)       |
+         +----------+-----------+
+                    |
+                    ↓
+         +----------------------+
+         | Config Server        |
+         +----------+-----------+
+                    |
+     ----------------------------------
+     ↓                ↓               ↓
+order-service   payment-service   user-service
+```
+- Enable Config Server
+```java
+@SpringBootApplication
+@EnableConfigServer  // Enables Config Server
+public class ConfigServerApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(ConfigServerApplication.class, args);
+    }
+}
+```
+- Configure Git Repository
+```yaml
+server:
+  port: 8888
+
+spring:
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/your-repo/config-repo
+```
+- Git Repo Structure
+```
+config-repo/
+ ├── application.yml
+ ├── order-service.yml
+ ├── payment-service.yml
+ ├── user-service.yml
+```
+- Add some config in the yml files
+```yaml
+// order-service.yml
+server:
+  port: 8081
+
+custom:
+  message: "Hello from Config Server"
+```
+- In the Client app, add the config in yml and access them
+
+```yaml
+spring:
+  application:
+    name: order-service
+
+  config:
+    import: optional:configserver:http://localhost:8888
+```
+
+```java
+@Value("${custom.message}")
+private String message;
+
+@GetMapping("/message")
+public String getMessage() {
+    return message;
+}
+```
 ## Rate Limiter
 - Rate Limiter is a mechanism that restricts the number of requests a client can make within a specific time window.
 - Without rate limiting -
@@ -1054,6 +1159,13 @@ public class ProductService {
 }
 ```
 
+### Cache recovery
+- If the cache is in-process, such as a local memory cache (ConcurrentHashMap, Caffeine), it is usually lost when the application crashes because it lives in JVM memory.
+- If the cache is external, like Redis, the application can often continue using it after restart because the cache exists outside the app.
+- Whether the cache survives a cache-server restart depends on whether the cache system has persistence enabled. In practice, cache recovery is often handled either through external caches, persistence, or rebuilding and warming the cache after restart.
+- Cache is usually a performance optimization. It is often acceptable to lose it.
+###### Cache warming
+- Preloading frequently used data into the cache before real user traffic starts hitting the system.
 ## Circuit Breaker
 - A Circuit Breaker is a design pattern used in distributed systems to prevent cascading failures by stopping calls to a failing service temporarily and return a fallback response instead.
 - Consider a system
