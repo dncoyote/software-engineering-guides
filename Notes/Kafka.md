@@ -90,3 +90,12 @@
 ## Kafka Configurations
 #### Broker / Cluster configurations
 
+## Apache Kafka vs Rabbit MQ
+
+| Property               | Kafka                                                  | RabbitMQ                                               |
+|------------------------|--------------------------------------------------------|--------------------------------------------------------|
+| Definition             | Distributed event streaming platform (log-based)       | Traditional message broker (queue-based)               |
+| Message Retention      | Stores messages after consumption (configurable)       | Messages removed once consumed and acknowledged        |
+| Replay                 | Consumers can re-read messages using offsets           | Not supported by default (requires re-queuing/DLQ)     |
+| Throughput vs Latency  | Optimized for high throughput                          | Optimized for low latency                              |
+| Use case               | Event streaming, analytics, log aggregation            | Task queues, background jobs, request-response         |

@@ -1688,6 +1688,25 @@ methodB (no tx)
 ```
 - Must NOT run inside transaction
 - Else → throws exception
+
+## Internationalization in Spring Boot
+- Internationalization in Spring Boot means serving messages based on locale.
+- The two most important concepts are:
+    - `MessageSource`
+    - `LocaleResolver`
+- `MessageSource` resolves the message text.
+- `LocaleResolver` decides which locale to use.
+- Messages are usually stored in:
+    - `messages.properties`
+    - `messages_fr.properties`
+    - `messages_en.properties`
+- In REST APIs, `Accept-Language` is usually the cleanest approach.
+- In real projects, localize:
+    - validation messages
+    - user-facing errors
+    - UI text
+    - Keep business logic language-neutral.
+ 
 ## End to End Spring Boot project
 - So assuming that this a simple REST CRUD with DB (JPA) and validation, I’ll implement layered architecture: Controller → Service → Repository (DAO) → Entity, with DTOs, validation, and global exception handling.
 - I am going to develop this for a User Management system.

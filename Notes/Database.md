@@ -159,7 +159,7 @@ JOIN orders o ON u.id = o.user_id;
     - C → Consistency
     - I → Isolation
     - D → Durability
-Supported by systems like:
+- Supported by systems like:
     - PostgreSQL
     - MySQL
 ### Atomicity
