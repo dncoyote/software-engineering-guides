@@ -429,6 +429,52 @@ public User createUser(@Valid @RequestBody CreateUserRequest request) {
 }
 ```
 
+## `@Primary`
+- `@Primary` is an annotation  used to mark a bean as the default choice when multiple beans of the same type are present.
+```java
+@Service
+@Primary
+public class EmailService implements NotificationService {}
+
+@Service
+public class SmsService implements NotificationService {}
+
+
+//Service layer
+@Autowired
+private NotificationService notificationService;
+
+// Here EmailService is injected
+```
+- It also works with `@Bean`.
+
+## `@Qualifier`
+- `@Qualifier` is an annotation used to specify exactly which bean should be injected when multiple beans of the same type exist.
+- It creates a default bean name from the class name in camelCase.
+```java
+@Service
+public class EmailService implements NotificationService {}
+
+@Service
+public class SmsService implements NotificationService {}
+
+
+// Service layer
+@Service
+public class UserService {
+
+    private final NotificationService notificationService;
+
+    public UserService(
+        @Qualifier("smsService") NotificationService notificationService
+    ) {
+        this.notificationService = notificationService;
+    }
+}
+
+// Here SmsService is injected
+```
+
 ## Spring Data JPA
 - Spring Data JPA is a module of Spring Boot that simplifies database access by providing abstraction over JPA (Java Persistence API) to interact with relational databases using repositories instead of boilerplate code.
 - Without Spring Data JPA we will need to write too much boilerplate and error-prone code that is hard to maintain.
@@ -1688,6 +1734,77 @@ methodB (no tx)
 ```
 - Must NOT run inside transaction
 - Else → throws exception
+
+## `@Async`
+- `@Async` is an annotation used to execute a method asynchronously in a separate thread, so the caller does not wait for the result.
+```
+Caller thread
+   ↓
+Calls @Async method
+   ↓
+Returns immediately
+   ↓
+Async thread executes method
+```
+- We have to add `@EnableAsync` in the main class before using `@Async`.
+```java
+@EnableAsync
+@SpringBootApplication
+public class App {
+}
+
+@Async
+public void sendEmail() {
+    // runs in background
+}
+```
+
+
+## Reactive Framework
+- A reactive framework is a programming model and set of libraries that enable asynchronous, non-blocking, event-driven data processing with support for backpressure.
+- Traditional Frameworks work on a **thread per request model**, that routinely gets blocked and has limited scalability and high memory usage.
+```
+Request → Thread → Wait → Response
+```
+```
+Request → Event → Non-blocking → Callback when ready
+```
+## WebFlux
+- Spring WebFlux is a non-blocking, reactive web framework in Spring designed to handle large numbers of concurrent requests efficiently.
+- Traditional Frameworks work on a **thread per request model**, that routinely gets blocked and has limited scalability and high memory usage.
+- On the other hand WebFlux creates event loops that are non blocking and asynchronous.
+```java
+Mono<User> user = repo.findById(id);
+return user;
+```
+- WebFlux is suitable for systems with -
+  - high concurrency (1000+ users)
+  - I/O heavy apps
+  - streaming APIs
+  - real-time systems
+
+## Mono
+- `Mono` is a type from Project Reactor that represents an asynchronous computation that emits either 0 or 1 item (or an error).
+```java
+Mono<User> user = repo.findById(id);
+```
+- This Reactive solution returns the result immediately eventhough the result comes later.
+```
+Call method → return Mono immediately (no waiting)
+             ↓
+        actual DB call happens later
+             ↓
+        result is emitted asynchronously
+```
+- `Mono` is similar to `Future` and `CompletableFuture`.
+- It is suitable for a single object.
+
+## Flux
+- Flux is a type from Project Reactor that represents an asynchronous stream of 0 to N elements (or an error).
+```java
+Flux<User> users = repo.findAll();
+```
+- It is suitable for a list/stream of objects.
 
 ## Internationalization in Spring Boot
 - Internationalization in Spring Boot means serving messages based on locale.
