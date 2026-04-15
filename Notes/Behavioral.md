@@ -185,21 +185,59 @@ GET /documents/{id}/viewer-manifest
 
 ## Low-frequency booking audit job 
 ### Context
-- I was working on a travel booking platform in the Expedia ecosystem as part of a vendor team. One part of the workflow involved post-payment booking reconciliation.
-Normally the flow was:
-customer makes payment
-payment succeeds
-downstream reservation/booking confirmation happens
-booking status is updated
-But occasionally, due to downstream timeouts or partial failures, some bookings got stuck in an intermediate state like:
-PAYMENT_SUCCESS
-BOOKING_PENDING
-These cases were rare, but they were important because they affected customer trust and support load.
-The product team needed a lightweight background mechanism to periodically detect such stuck bookings and trigger reconciliation logic.
-The frequency was low:
-every 10 or 15 minutes was enough
-expected record count each run was small
-not a high-throughput streaming problem
+- I was working on a travel platform (Expedia ecosystem), where we handled:
+    - user profiles
+    - bookings
+    - payments
+    - logs and historical data
+- Due to GDPR-like regulations, we needed to support RTBF (Right to be Forgotten) requests.
+- What RTBF means here
+    - all personally identifiable data must be removed or anonymized across multiple services:
+        - user service
+        - booking service
+        - payment service
+        - logs / analytics stores
+### Requirement 
+- We needed a periodic audit job that:
+    - scans for RTBF requests in PENDING or PARTIAL state
+    - retries deletion steps
+    - verifies completion
+    - marks request as COMPLETED or FAILED
+    - alerts if stuck too long
+```
+rtbf_request
+- request_id
+- user_id
+- status (PENDING, IN_PROGRESS, COMPLETED, FAILED)
+- created_at
+- last_attempt_at
+```
+- We wanted this system
+    - run every 10–15 minutes
+    - process small batches (50–200 records)
+    - idempotent
+    - safe retries
+    - strong auditability
+### Existing System
+```
+User → RTBF API → RTBF Service → downstream services
+```
+Problems:
+    - deletion was synchronous attempt
+    - failures were not retried automatically
+    - state tracking existed, but no repair loop
+
+### Initial Proposal
+- Build a serverless scheduled reconciliation system
+```
+EventBridge Scheduler (10 min)
+        ↓
+     Lambda (RTBF Audit)
+        ↓
+ RTBF DB + downstream services
+```
+
+
 
 ---
 - STAR - Situation, Task, Action, Result
