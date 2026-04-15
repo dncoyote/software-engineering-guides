@@ -15,5 +15,5 @@
 [Notes](Notes/React.md)  
 #### Misc 
 [Notes](Notes/Misc.md)  
-#### Challenges 
-[Notes](Notes/Challenges.md)  
+#### Behavioral 
+[Notes](Notes/Behavioral.md)  

@@ -1,3 +1,40 @@
+# Behavioral
+## Tell me about yourself
+
+## Why should we hire you 
+
+## What do you know about this company? 
+
+## Strength and Weakness 
+
+## What motivates you at work? 
+
+## Have you worked in a Leadership position? 
+
+## Why are you looking for a change?  
+
+## What are your long term goals? 
+
+## Tell me about your current project?
+- Agile or Scrum
+
+## Day-to-day activities? 
+
+## Rate yourself on this skill 
+
+## Working during weekends during Delivery? 
+
+## How do you handle when requirements change in the last moment? 
+
+## How do you manage conflict with your colleagues? 
+
+## Are you willing to learn new technology? 
+
+## Describe a situation when you faced tight deadline and high pressure and how did you handle it?
+
+## Do you have any questions for me? 
+
+# Challenges
 ## Large PDF Viewer Performance Issue Solved in Backend Java
 ### Context
 - I was working on a document management system used internally by enterprise operations teams
@@ -163,3 +200,13 @@ The frequency was low:
 every 10 or 15 minutes was enough
 expected record count each run was small
 not a high-throughput streaming problem
+
+---
+- STAR - Situation, Task, Action, Result
+- confidence, positivity, humble 
+- Leadership - taking initiatives
+- Resilience - rising up to challenges, talk about accomplishment
+- Teamwork -
+- Influence/Persuasion
+- Ethics/Morality/Integrity
+- Give safe answers
