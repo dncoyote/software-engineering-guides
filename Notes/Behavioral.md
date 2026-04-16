@@ -336,19 +336,131 @@ pipeline {
 ```
 - We could have used a Spring Boot app with @Scheduled, and technically that would work. The reason we didn’t choose it was that this was a low-frequency audit job, not a continuously active business service. Using Spring Boot scheduling would mean introducing a new always-running JVM, new deployment and monitoring overhead, and also solving coordination if multiple instances were deployed. Since we already had Jenkins as a shared scheduler platform, it was more efficient to keep the business logic in Java but execute it as an on-demand scheduled job rather than as another permanent service.
 
-## Concurrency Bug in Merchant Promotion Allocation System 
+## Concurrency Bug in Merchant Promotion Allocation System
 ### Context
 - I was working on a merchant promotions subsystem in a travel platform (Expedia ecosystem), responsible for applying partner-funded discounts during checkout.
 - Hotels could configure campaigns like:
     - “First 300 bookings get ₹1500 cashback”
     - “Only 100 premium upgrades available”
-    - “Limited weekend discount budget”
 - These promotions were applied in real-time during checkout, so users saw discounted pricing before completing payment.
 - This system matters as it has Direct financial impact (platform or merchant pays subsidy), Contractual limits (strict cap enforcement required)
 and High visibility during peak campaigns
 ### Problem
 - We started seeing campaign overspend issues during high-traffic promotions. If Campaign cap was 300, actual consumption was 312-327 which increased spending by 4-9%.
+```
+Checkout Service
+   ↓
+Promotion Evaluation Service
+   ↓
+Promotion Reservation Service
+   ↓
+Postgres
 
+Booking Completion
+   ↓
+Kafka
+   ↓
+Consumption Worker
+```
+- This is not a common bug, during our investigation we were able identify that this was not caused by -
+    - missing transaction
+    - missing lock
+    - duplicate events
+- Our investigation also failed to uncover any
+  - Kafka duplication
+  - Idempotency failure
+
+##### Two-phase commit
+- We also noticed that the existing system was encapsulated in 2PC Design Pattern
+- Phase 1 — Soft reservation (checkout)
+    - validate eligibility
+    - create HELD reservation
+    - return discounted price
+- Phase 2 — Final consumption (async)
+    - booking success event → Kafka
+    - worker consumes reservation
+    - marks CONSUMED
+    - increments budget usage
+- This worked well under normal load, but under concurrency, multiple requests were approved based on stale availability because we were only checking consumed count and not accounting for active reservations.
+- The key issue was not a missing lock, but a flawed concurrency model where reservations were not capacity-aware.
+
+### Root Cause
+- The issue was caused by a combination of subtle factors
+- Stale availability check
+  - Eligibility logic was calculated `remaining = max_entitlements - consumed_count`
+  - But this logic ignored active `HELD` reservations.
+  - Under concurrency, many requests saw the same “remaining” value
+- Soft reservations were unconstrained
+    - system allowed creating `HELD` reservations freely
+    - no strict upper bound on total allocations
+- Async consumption amplified the issue
+    - Due to high conversion rate → most holds became real consumption
+    - Temporary oversubscription became permanent
+- We were able to make this breakthrough by correlating timestamp of reservations and booking completion events, we found that multiple reservations created within milliseconds were the ones affected.
+
+### Solution
+- This is data model before fix
+```
+//campaign
+campaign_id
+max_entitlements
+consumed_count
+
+//promo_reservation
+reservation_id
+campaign_id
+status (HELD, CONSUMED, RELEASED)
+expires_at
+```
+- This is the data model after fix
+```
+//campaign
+campaign_id
+max_entitlements
+allocated_count   // HELD + CONSUMED
+consumed_count
+version
+```
+- We enforced a new rule `allocated_count <= max_entitlements`
+#### Flow
+- Atomic conditional update in Postgres
+```sql
+UPDATE campaign_inventory
+SET allocated_count = allocated_count + 1
+WHERE campaign_id = :id
+  AND allocated_count < max_entitlements;
+```
+- Create Reservation
+```
+status = HELD
+```
+- On booking success
+```
+HELD → CONSUMED
+consumed_count++
+```
+- On expiry/cancel
+```
+HELD → RELEASED
+allocated_count--
+```
+- This eliminates oversubscription, ensures hard cap enforcement and concurrency is handled at DB level reducing the overall complexity.
+- We also added some cleanup jobs that releases expired reservations that prevents capacity leak.
+##### Other solutions
+- Distributed Lock (Redis)
+    - The core idea was to lock per campaign and serialize allocation
+    - We rejected this as it adds network dependency, introduces lock contention and introduces the added complexity of maintaining Redis and maintaining consistency between Redis and DB.
+- Kafka Serialization
+    - The core idea was to send all allocation requests to queue and process sequentially
+    - We rejected this as it adds latency to checkout, breaks synchronous pricing requirement and introduces complex rollback logic
+- Fully pessimistic DB locking
+  - But this reduces throughput, blocks under high concurrency and was unnecessary for simple counter
+
+ ### Trade-offs
+ - What we optimized for
+    - correctness
+    - strict cap enforcement
+    - financial safety
 
 ## Performance debugging scenario
 ## Cache inconsistency bug
