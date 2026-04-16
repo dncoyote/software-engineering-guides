@@ -1,34 +1,62 @@
 # Behavioral
 ## Tell me about yourself
 
-## Why should we hire you 
+## Why should we hire you?
+- I bring 8+ years of backend engineering experience, primarily in Java and Spring Boot applications in a microservices architecture. My experience sits at the intersection of backend development and platform engineering. I have worked in domains like TTL, Healthcare, ERP, DMS and I have gone through the job description for this role and I believe my experience aligns with the requirements and I believe I can make a positive impact to the company if I am selected.
 
-## What do you know about this company? 
+## What do you know about this company?
+- Year of establishment / Founders / CEO
+- Product/business model
+- Tech direction
+- Recent news / growth
+- Why it excites you?
 
-## Strength and Weakness 
+## Strength and Weakness
+###### Strength
+- One of key strengths is
+###### Weakness
+- One area I have been working on is handling ambiguity in requirements. Earlier in my career, when requirements were not fully defined, I used to feel uncertain about whether I was building the right thing.
+- Over time, I have improved this by proactively clarifying requirements early and by being methodical well planned, I have also felt this practices reduces imposter syndrome.
+- So now I break down the problem, plan the work, ask targeted questions, and align with stakeholders before starting implementation.
 
-## What motivates you at work? 
+## What motivates you at work?
+- I am motivated by solving real engineering problems and seeing the impact of what I build in production. I enjoy working in environments where I am continuously learning, but more importantly, applying that learning to build reliable and scalable systems.
+- I find it very rewarding when I can identify a problem in a system or implement a feature.
+- I am also motivated by working with strong teams where there is a culture of ownership and continuous improvement.
 
-## Have you worked in a Leadership position? 
+## Have you worked in a Leadership position?
 
 ## Why are you looking for a change?  
+- In my current role, I have had good exposure to maintaining production systems, handling vulnerability fixes, and ensuring stability, which has given me a strong foundation in reliability and operational excellence. This role has helped how things are planned and done in product organisations.
+- However, I am now looking to move towards a role where I can be more involved in building new features and solving core engineering problems — especially around system design, scalability, and product development.
+- I feel this is the right time in my career to move from primarily operational work to more product-focused engineering challenges.
 
-## What are your long term goals? 
+## What are your long term goals?
+- In the long term, I want to become a strong backend engineer who can design and own complex systems end-to-end.
+- I am focused on building deep expertise in areas like system design, scalability, and reliability, and becoming someone the team can rely on for critical decisions.
+- Over time, I would also like to grow into a leadership role by mentoring others, influencing technical decisions, and driving larger initiatives.
 
 ## Tell me about your current project?
 - Agile or Scrum
 
-## Day-to-day activities? 
+## Day-to-day activities?
 
-## Rate yourself on this skill 
+## Rate yourself on X skill
+- I would rate myself 7.5-8 in X. I am comfortable with building Y, but I’m still improving in areas like Z. The X itself is evolving on a daily basis and it is important to keep learning and constantly upskill.
 
-## Working during weekends during Delivery? 
+## Working during weekends during Delivery?
+- I try to be methodical and well planned, I always keep track of my work on a daily basis and periodically audit whether I can make it to the deadline. But there are unplanned situations like critical delivery or production issue, I am willing to step up and go the extra mile to finish my deliverables even if that involves working during weekends. If I am unable to spend time during weekends due prior engagements, I am willing to put additional effort during weekdays.
 
-## How do you handle when requirements change in the last moment? 
+## How do you handle when requirements change in the last moment?
+- When requirements change at the last moment, my first step is to clearly understand what has changed and why and whether its a business priority shift or a missed requirement.
+- Then I quickly assess the impact on the current implementation, timelines, and dependencies. Based on that, I communicate the trade-offs clearly, for example, whether we need to adjust scope, timeline, or accept a phased delivery.
+- I ensure to keep the stakeholders and the team informed about the new developments.
+- I have found that proactively communicating impact and aligning early helps avoid last-minute surprises and keeps the delivery predictable.
 
-## How do you manage conflict with your colleagues? 
+## How do you manage conflict with your colleagues?
 
-## Are you willing to learn new technology? 
+## Are you willing to learn new technology?
+- Yes, I am willing to learn new technologies. It is important to keep learning and have a continuous learning and upskilling roadmap and to follow it closely, as our jobs are constantly evolving and fast paced.  
 
 ## Describe a situation when you faced tight deadline and high pressure and how did you handle it?
 
