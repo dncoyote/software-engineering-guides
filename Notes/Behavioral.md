@@ -236,8 +236,123 @@ EventBridge Scheduler (10 min)
         ↓
  RTBF DB + downstream services
 ```
+- Lambda responsibilities
+    - fetch stale RTBF requests
+    - retry deletion per service
+    - update state
+    - log audit trail
+- Lambda and Eventbridge was ideal
+    - EventBridge supports cron triggers and is fit for periodic jobs
+    - independent system
+
+### Solution
+- Jenkins cluster already existed primarily used for -
+    - scheduled jobs
+    - operational scripts
+    - maintenance workflows
+- By Jenkins cluster, I mean an enterprise Jenkins setup residing in a VM with a central controller and one or more agents/executors where scheduled jobs already run.
+```
+Jenkins (cron every 10 min)
+        ↓
+ RTBF audit job (Java jar / script)
+        ↓
+ RTBF DB + downstream services
+```
+##### Flow
+```
+rtbf-audit-job/
+  ├── src/main/java/com/company/rtbf/audit/
+  │   ├── RtbfAuditApplication.java
+  │   ├── RtbfAuditRunner.java
+  │   ├── RtbfRequestRepository.java
+  │   ├── UserDeletionClient.java
+  │   ├── BookingDeletionClient.java
+  │   ├── PaymentDeletionClient.java
+  │   └── AuditReporter.java
+  ├── src/test/java/...
+  ├── pom.xml
+  ├── Jenkinsfile
+  ├── application-prod.yml
+  └── README.md
+```
+- Every 10 minutes
+    - query stale RTBF requests
+    - process in batches
+    - retry deletion
+    - update status
+    - log results
+    - alert if failures exceed threshold
+- Jenkins Pipelines can be defined as code, typically in a Jenkinsfile checked into source control, and Jenkins supports Declarative and Scripted Pipeline syntax for that.
+- The business logic should be a small Java batch application or Spring Boot command-line job packaged as a jar, and Jenkins should invoke that jar.
+- We ended up using Jenkins as the Delivery was quicker
+```groovy
+pipeline {
+    agent { label 'java17-batch' }
+
+    triggers {
+        cron('H/10 * * * *')
+    }
+
+    options {
+        disableConcurrentBuilds()
+        timestamps()
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                sh 'mvn -B clean package -DskipTests'
+            }
+        }
+
+        stage('Run RTBF Audit') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'rtbf-db-url', variable: 'DB_URL'),
+                    string(credentialsId: 'rtbf-api-token', variable: 'API_TOKEN')
+                ]) {
+                    sh '''
+                      java -jar target/rtbf-audit-job.jar \
+                        --batch-size=100 \
+                        --cutoff-minutes=10
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        failure {
+            echo 'RTBF audit job failed'
+        }
+    }
+}
+```
+- We could have used a Spring Boot app with @Scheduled, and technically that would work. The reason we didn’t choose it was that this was a low-frequency audit job, not a continuously active business service. Using Spring Boot scheduling would mean introducing a new always-running JVM, new deployment and monitoring overhead, and also solving coordination if multiple instances were deployed. Since we already had Jenkins as a shared scheduler platform, it was more efficient to keep the business logic in Java but execute it as an on-demand scheduled job rather than as another permanent service.
+
+## Concurrency Bug in Merchant Promotion Allocation System 
+### Context
+- I was working on a merchant promotions subsystem in a travel platform (Expedia ecosystem), responsible for applying partner-funded discounts during checkout.
+- Hotels could configure campaigns like:
+    - “First 300 bookings get ₹1500 cashback”
+    - “Only 100 premium upgrades available”
+    - “Limited weekend discount budget”
+- These promotions were applied in real-time during checkout, so users saw discounted pricing before completing payment.
+- This system matters as it has Direct financial impact (platform or merchant pays subsidy), Contractual limits (strict cap enforcement required)
+and High visibility during peak campaigns
+### Problem
+- We started seeing campaign overspend issues during high-traffic promotions. If Campaign cap was 300, actual consumption was 312-327 which increased spending by 4-9%.
 
 
+## Performance debugging scenario
+## Cache inconsistency bug
+## Distributed uploads / DICOM-scale handling 
 
 ---
 - STAR - Situation, Task, Action, Result
