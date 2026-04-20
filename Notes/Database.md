@@ -653,8 +653,91 @@ INSERT INTO author_book (author_id, book_id) VALUES
 - Most modern systems understands that network failures can happen so Partition Tolerance cannot be guaranteed so they choose either CP (MongoDB) or AP (Cassandra, DynamoDB) based on business requirements.
 
 
+## Database Design
+- Database Design involving modeling the data, defining their relationship and constraints.
+- This enables the system to perform read and writes at scale.
+### Principles
+- Identify Functional requirements
+    - What entities exist?
+    - What operations?
+        - Create / Read / Update / Delete
+        - Queries?
+- Identify Non-Functional requirements
+    - Read-heavy or write-heavy?
+        - Read-heavy → Denormalize + cache
+        - Write-heavy → Normalize + batch writes
+    - Latency requirements?
+        - Sub-ms → caching (Redis)
+        - Acceptable delay → DB only
+    - Scale (10K vs 100M users)?
+    - Consistency requirements? 
+        - Strong consistency → SQL
+        - Eventual consistency → NoSQL
+- Identify core entities and define the relationships
+```
+User
+Product
+Order
+OrderItem
+Payment
+
+User → Orders (1:N)
+Order → OrderItems (1:N)
+Product → OrderItems (1:N)
+```
+- Choose Database type (SQL or NoSQL)
+- Normalize data to avoid redundancy
+- Define keys and constraints
+```sql
+PRIMARY KEY (id)
+FOREIGN KEY (user_id)
+UNIQUE (email)
+```
+- Design the Indexing strategy based on the queries
+
+```sql
+SELECT * FROM orders WHERE user_id = ?
+
+CREATE INDEX idx_orders_user ON orders(user_id);
+```
+- Plan for scale
+    - Partitioning / Sharding
+    - Replication
+    - Caching (Redis)
+
 ## Normalization
-- Organizing data to avoid redundancy.
+- Normalization is the process of structuring a relational database to minimize redundancy and dependency by organizing data into multiple related tables.
+- Eliminate duplication and organizing data to avoid redundancy.
+- One piece of data should be available only once.
+
+#### Unnormalized Table 
+
+| order_id | user_name | product | price |
+| --- | --- | --- | --- |
+| 101 | John | Laptop | 100000 |
+| 102 | John | Mouse | 500 |
+- Here `user_name` is repeated.
+- If name changes, multiple updates is required to make table consistent.
+- After Normalization, `users`, `orders`, `order_items` tables are created. 
+
+
+| user_id | name |
+| --- | --- |
+| 1 | John |
+
+
+| order_id | user_id |
+| --- | --- |
+| 101 | 1 |
+| 102 | 1 |
+
+
+| order_id | product | price |
+| --- | --- | --- |
+| 101 | Laptop | 100000 |
+| 102 | Mouse | 500 |
+
+
 
 ## MongoDB
 - MongoDB is a document-oriented NoSQL database that stores data as JSON-like documents (Binary JSON - BSON) instead of rows and columns.
