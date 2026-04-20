@@ -1247,4 +1247,8 @@ public class Main {
 ## Behavioral Pattern
 - A Behavioral Pattern focuses on how objects communicate, collaborate, and distribute responsibilities within a system.
 - They deal with object interaction and behavior.
-- In large systems, objects constantly interact
+
+## Strategy Pattern
+- Strategy Pattern is used when we have multiple algorithms or behaviors for the same task. Instead of using conditionals, we define a common interface and implement each behavior as a separate class. The client selects the appropriate strategy at runtime. This follows Open/Closed Principle and improves extensibility and maintainability.
+- Instead of hardcoding behavior, you pass behavior as an object.
+ 
