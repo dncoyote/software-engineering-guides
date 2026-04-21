@@ -302,6 +302,122 @@ CREATE UNIQUE INDEX idx_email ON users(email);
 - Hash based Sharding
 - Directory based Sharding
 
+## DDL (Data Definition Language)
+- DDL is used to define or modify the database structure (schema).
+- DDL is often auto-committed and it is harder to rollback (PostgreSQL supports transactional DDL)
+- DDL locks entire table/schema
+- CREATE
+ 
+```sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(255) UNIQUE
+);
+```
+- ALTER - modifies structure.
+
+```sql
+ALTER TABLE users
+ADD COLUMN age INT;
+```
+- DROP - Deletes entire table.
+
+```sql
+DROP TABLE users;
+```
+- TRUNCATE - Removes all data (fast, resets storage).
+
+```sql
+TRUNCATE TABLE users;
+```
+- RENAME 
+
+```sql
+ALTER TABLE users RENAME TO customers;
+```
+
+## DML (Data Manipulation Language) 
+- DML is used to read and modify the actual data stored in tables
+- Fully transactional.
+- DML performs row level locks.
+- INSERT 
+
+```sql
+INSERT INTO users (name, email)
+VALUES ('John', 'john@email.com');
+```
+- SELECT
+
+```sql
+SELECT * FROM users WHERE age > 25;
+```
+- UPDATE
+
+```sql
+UPDATE users
+SET age = 32
+WHERE id = 1;
+```
+- DELETE
+
+```sql
+DELETE FROM users WHERE id = 1;
+```
+
+## DQL (Data Query Language) 
+- DQL (Data Query Language) is the subset of SQL used to retrieve (query) data from the database.
+- SELECT
+
+```sql
+SELECT id, name FROM users;
+```
+- WHERE - Filter rows before grouping.
+
+```sql
+SELECT * FROM users
+WHERE age > 25;
+```
+- ORDER BY - sorting
+
+```sql
+SELECT name, age
+FROM users
+ORDER BY age DESC;
+```
+
+- LIMIT/OFFSET - pagination
+
+```sql
+SELECT *
+FROM users
+ORDER BY id
+LIMIT 10 OFFSET 20;  -- page 3 (10 per page)
+```
+- DISTINCT
+
+```sql
+SELECT DISTINCT city FROM users;
+```
+- GROUP BY
+
+```sql
+SELECT department, COUNT(*) AS cnt
+FROM employees
+GROUP BY department
+HAVING COUNT(*) > 5;
+```
+- JOINS
+- SUBQUERIES
+
+```sql
+SELECT name
+FROM users
+WHERE id IN (
+  SELECT user_id FROM orders WHERE amount > 100
+);
+```
+
 ## Find average of salary in each department
 
 ```sql
@@ -456,6 +572,56 @@ ON e.manager_id = m.id;
 | Alice| NULL|
 | Bob| Alice|
 | Charlie| Alice|
+
+## UNION, UNION ALL 
+- Union - Combines results and removes duplicate rows
+- Union All - Combines results and keeps all rows (including duplicates)
+- Consider this two tables
+
+
+| name |
+| --- |
+| Alice |
+| Bob|
+| Charlie |
+| name |
+| --- |
+| Bob|
+| David |
+| Alice |
+
+
+```sql
+SELECT name FROM A
+UNION
+SELECT name FROM B;
+```
+
+
+| name |
+| --- |
+| Alice |
+| Bob|
+| Charlie |
+| David |
+
+
+```sql
+SELECT name FROM A
+UNION ALL
+SELECT name FROM B;
+```
+
+
+| name |
+| --- |
+| Alice |
+| Bob|
+| Charlie |
+| Bob |
+| David |
+| Alice |
+
 ## GROUP BY
 
 - `GROUP BY` clause is used to group rows that have the same values in specified columns into summary rows.
@@ -737,6 +903,85 @@ CREATE INDEX idx_orders_user ON orders(user_id);
 | 101 | Laptop | 100000 |
 | 102 | Mouse | 500 |
 
+
+## Normal forms
+- Normal forms are used to eliminate redundancy and dependency issues in database design. 1NF ensures atomic values, 2NF removes partial dependencies in composite keys, 3NF eliminates transitive dependencies, and BCNF further ensures that every determinant is a candidate key. In practice, most systems are designed up to 3NF and selectively denormalized for performance.
+- Consider this unnormalized table.
+
+| order_id | product_id | product_name | customer_id | customer_name | city |
+| --- | --- | --- | --- | --- | --- |
+| 101 | 1 | Laptop | 10 | John | New York |
+| 101 | 2 | Mouse | 10 | John | New York |
+| 102 | 1 | Laptop | 11 | Alice | Austin |
+
+### 1 NF 
+- No repeating groups
+- Atomic values (no arrays, no nested data)
+- Violation
+
+| order_id | products |
+| --- | --- |
+| 101 | Laptop, Mouse|
+
+- Fix
+
+| order_id | products |
+| --- | --- |
+| 101 | Laptop|
+| 101 | Mouse|
+
+### 2 NF
+- Must be in 1NF
+- No partial dependency on composite key
+- In the unnormalized table, there is two primary keys (composite keys) `order_id` and `product_id`, but `product_name` only depends on `product_id`.
+- Fix
+
+| product_id | product_name |
+| --- | --- |
+| 1 |  Laptop|
+| 2| Mouse |
+
+
+| order_id | product_id |
+| --- | --- |
+| |  |
+
+### 3 NF
+- Must be in 2NF
+- No transitive dependency, `A → B → C` A indirectly determines C, this is not allowed.
+- In the unnormalized table, `customer_id → customer_name` and `customer_name → city`, so indirectly `customer_id → city`.
+- Fix, split tables to `customers` and `cities`.
+
+| customer_id | customer_name | city_id |
+| --- | --- | --- |
+| | | |
+
+
+| city_id| city_name |
+| --- | --- |
+| | |
+
+### BCNF (Boyce-Codd Normal Form) 
+- Every determinant must be a candidate key.
+- Consider this table
+
+| teacher | subject | room |
+| --- | --- | --- |
+| A | Math | 101|
+| B | Math | 101|
+- In the above table, 
+    - Each subject has one room
+    - Each teacher teaches one subject
+    - But the problem is `subject → room`, but `subject` is not a key.
+- Fix, split tables to `subjects` and `teachers`
+
+
+| subject | room |
+| --- | --- |
+| | |
+| teacher | subject |
+| --- | --- |
+| | |
 
 
 ## MongoDB
