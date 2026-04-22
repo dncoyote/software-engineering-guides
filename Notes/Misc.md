@@ -85,7 +85,124 @@ DELETE /users/123
 | risk | overwrites missing field | safer |
 | use case | replace resource | modify some fields |
 
+## Idempotency
+- An operation is idempotent if repeating it multiple times produces the same result as applying it once.
 
+## API best practises
+- Design around resources, not actions - Use nouns in URLs and let the HTTP method express the actions
+
+```
+GET /users/123
+POST /users
+PATCH /users/123
+DELETE /users/123
+```
+- Use the correct HTTP method - HTTP method semantics are standardized, and clients and infrastructure rely on them
+- Return the right status codes
+
+```
+200 OK for successful reads/updates
+201 Created when a resource is created
+204 No Content for delete or update without response body
+400 Bad Request for invalid input
+401 Unauthorized when authentication is missing or invalid
+403 Forbidden when authenticated but not allowed
+404 Not Found when resource does not exist
+409 Conflict for state conflicts
+429 Too Many Requests for rate limiting; Retry-After may be included
+```
+- Keep request and response shapes consistent
+
+```json
+//request
+{
+  "data": {
+    "id": 123,
+    "name": "Bilal"
+  },
+  "meta": {
+    "requestId": "a1b2c3"
+  }
+}
+```
+
+```json
+{
+  "error": {
+    "code": "VALIDATION_FAILED",
+    "message": "Email is invalid",
+    "details": [
+      {
+        "field": "email",
+        "issue": "must be a valid email address"
+      }
+    ]
+  }
+}
+```
+- Validate input strictly at the boundary
+
+```java
+public record CreateUserRequest(
+    @NotBlank String name,
+    @Email String email,
+    @Size(min = 8, max = 100) String password
+) {}
+```
+
+- Use pagination, filtering, and sorting - Never return unbounded lists in production APIs
+
+```
+GET /users?page=0&size=20&sort=createdAt,desc
+GET /orders?status=PAID&customerId=123
+```
+- Version API
+
+```
+/api/v1/users
+/api/v2/users
+```
+- Make idempotency explicit for retry-prone operations using idempotency key
+- Document the API well using OpenAPI/Swagger
+    - endpoint purpose
+    - request schema
+    - response schema
+    - auth requirements
+    - error codes
+    - examples
+    - rate limits
+- Keep business logic out of controllers
+
+## API Security Best practices
+- Use HTTPS everywhere
+- Strong authentication using OAuth2/OIDC, JWT or session auth should be implemented properly
+- Apply least privilege
+- Rate limit and protect resources
+    - login
+    - OTP endpoints
+    - password reset
+    - search endpoints
+    - expensive reports
+    - public APIs
+- Prevent excessive data exposure using DTO's
+- Validate and sanitize all inputs, always use parameterized SQL.
+- Log everything
+
+## API Versioning
+- API versioning is the practice of managing changes to an API in a way that allows existing clients to continue working while newer clients adopt updated behavior or contracts.
+- You usually need a new version for breaking changes
+- URI / path versioning
+
+```
+/api/v1/users
+/api/v2/users
+```
+- Query parameter versioning
+
+```
+GET /users/123?version=2
+```
+- Header versioning
 
 ## HTTP
 - HTTP (HyperText Transfer Protocol) is a stateless, application-layer protocol used for communication between clients (e.g., browser, mobile app) and servers over a network.
@@ -174,6 +291,9 @@ Client → TLS Handshake → Secure Connection → HTTP over TLS
 - TLS 1.2 and TLS 1.3 are the Modern, faster and widely used protocols.
 - TLS handled by Nginx, AWS ALB, Cloudflare
 
+## GraphQL
+- GraphQL is a query language + runtime for APIs where the client specifies exactly what data it needs, and the server returns precisely that—no more, no less.
+- REST can over-fetch or under fetch, GraphQL lets the client define exactly what it wants.
 ## Authentication vs Authorization
 - Authentication - Verifies the identity of a user.
 - Authorization - Determines permissions/access after identity is known.
@@ -249,8 +369,12 @@ Authorization: Bearer <token>
 ## Idempotency?
 ## Authentication (JWT, OAuth)
 ## Authentication works over HTTP
+## SQL Injection
+## SSRF
+## OIDC
 ## Cookies vs Sessions vs JWT
 ## API security best practices
+## API Versioning 
 ## Status codes
 ## REST API design
 ## API Gateway & Load Balancer & Reverse Proxy
