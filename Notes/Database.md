@@ -418,6 +418,196 @@ WHERE id IN (
 );
 ```
 
+## DCL (Data Control Language)
+- DCL (Data Control Language) is the subset of SQL used to control access and permissions on database objects.
+- Suppose we have a database `employees` and we have two sets of users.
+    - `app_user` → application
+    - `report_user` → analytics
+    - `admin_user`
+- GRANT 
+```sql
+GRANT SELECT ON employees TO report_user;
+//`report_user` can only read data.
+
+```
+
+```sql
+GRANT SELECT, INSERT, UPDATE ON employees TO app_user;
+```
+
+```sql
+GRANT ALL PRIVILEGES ON employees TO admin_user;
+
+```
+- REVOKE
+
+```sql
+REVOKE SELECT ON employees FROM report_user;
+```
+
+```sql
+REVOKE ALL PRIVILEGES ON employees FROM app_user;
+```
+- We can also create Role-Based Access Control (RBAC)
+
+```sql
+CREATE ROLE analyst;
+```
+
+```sql
+GRANT SELECT ON employees TO analyst;
+```
+
+```sql
+GRANT analyst TO report_user;
+```
+
+## TCL (Transaction Control Language) 
+- TCL (Transaction Control Language) is used to manage transactions in a database.
+- Without TCL:
+    - Partial updates can corrupt data
+    - Failures leave DB in inconsistent state
+- TCL ensures Atomicity (all-or-nothing)
+- COMMIT - Permanently saves all changes in the transaction.
+
+```sql
+BEGIN;
+
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+
+COMMIT;
+```
+- ROLLBACK - Reverts all changes since the last COMMIT (or transaction start).
+
+```sql
+BEGIN;
+
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+
+ROLLBACK;
+```
+- SAVEPOINT - Creates a checkpoint inside a transaction.
+
+```sql
+BEGIN;
+
+UPDATE accounts SET balance = balance - 100 WHERE id = 1;
+
+SAVEPOINT before_second_update;
+
+UPDATE accounts SET balance = balance + 100 WHERE id = 2;
+
+ROLLBACK TO before_second_update;
+// Only the second update is undone
+
+```
+
+```sql
+BEGIN;
+
+UPDATE users SET balance = balance - 500 WHERE id = 1;
+
+SAVEPOINT step1;
+
+UPDATE users SET balance = balance + 500 WHERE id = 2;
+
+-- error occurs
+ROLLBACK TO step1;
+
+COMMIT;
+```
+
+## Constraints 
+- Constraints are rules enforced by the database to ensure data integrity, validity, and consistency.
+- They act as guardrails: invalid data never enters the system.
+- NOT NULL - Column cannot contain NULL values
+
+```sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+```
+
+```sql
+//INVALID
+INSERT INTO users (name) VALUES (NULL);
+```
+
+- UNIQUE - All values must be distinct
+
+```sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE
+);
+```
+
+```sql
+//INVALID
+INSERT INTO users (email) VALUES ('a@email.com');
+INSERT INTO users (email) VALUES ('a@email.com'); -- fails
+```
+- PRIMARY KEY
+    - Uniquely identifies row
+    - NOT NULL + UNIQUE
+    - Only one per table
+    - We can keep two or more fields as PRIMARY KEY `PRIMARY KEY (student_id, course_id)`- Same student cannot enroll twice in same course (This is a Composite Primary Key).
+```sql
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY
+);
+```
+- FOREIGN KEY - Ensures referential integrity between tables.
+
+```sql
+CREATE TABLE orders (
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id)
+);
+```
+
+```sql
+//INVALID
+INSERT INTO orders (user_id) VALUES (999); -- if user doesn't exist
+```
+- CHECK - Validates condition
+
+```sql
+CREATE TABLE users (
+    age INT CHECK (age >= 18)
+);
+```
+
+```sql
+//INVALID
+INSERT INTO users (age) VALUES (15);
+```
+- DEFAULT - Sets default value if none provided.
+
+```sql
+CREATE TABLE users (
+    status VARCHAR(20) DEFAULT 'ACTIVE'
+);
+```
+
+```sql
+INSERT INTO users DEFAULT VALUES;
+```
+
+- COMPOSITE CONSTRAINT - A rule applied on multiple columns together, not individually.
+    - Suppose if we want a user to order one product only once.
+
+```sql
+CREATE TABLE orders (
+    user_id INT,
+    product_id INT,
+    UNIQUE (user_id, product_id)
+);
+```
+
+
 ## Find average of salary in each department
 
 ```sql
@@ -622,9 +812,55 @@ SELECT name FROM B;
 | David |
 | Alice |
 
-## GROUP BY
 
+## ORDER BY 
+- `ORDER BY` is used to sort the result set of a query based on one or more columns.
+
+```sql
+SELECT name, age
+FROM users
+ORDER BY age;
+
+SELECT name, age
+FROM users
+ORDER BY age DESC;
+```
+- Multiple column sorting
+    - Sort by `department`, if same department → sort by `salary DESC`
+
+```sql
+SELECT name, department, salary
+FROM employees
+ORDER BY department ASC, salary DESC;
+```
+- Control NULL order
+
+```sql
+SELECT *
+FROM users
+ORDER BY age NULLS FIRST;
+```
+
+## GROUP BY
 - `GROUP BY` clause is used to group rows that have the same values in specified columns into summary rows.
+
+```sql
+SELECT department, AVG(salary) AS avg_salary
+FROM employees
+GROUP BY department;
+
+SELECT department, AVG(salary)
+FROM employees
+WHERE salary > 60000
+GROUP BY department;
+```
+- Multiple columns - Each unique combination becomes a group
+
+```sql
+SELECT department, name, COUNT(*)
+FROM employees
+GROUP BY department, name;
+```
 - Data Aggregation
 
 ```sql
@@ -650,6 +886,9 @@ GROUP BY email
 HAVING count > 1;
 ```
 
+## Window Functions
+- Window functions perform calculations across a set of rows (a “window”) related to the current row, without collapsing rows.
+
 ## SQL query to fetch second highest value
 
 ```sql
@@ -662,6 +901,26 @@ SELECT column_name AS second_highest
 FROM table_name
 ORDER BY column_name DESC
 LIMIT 1 OFFSET 1;
+```
+
+
+## SQL query to fetch third highest value
+
+```sql
+SELECT DISTINCT salary
+FROM employees
+ORDER BY salary DESC
+LIMIT 1 OFFSET 2;
+```
+
+```sql
+SELECT salary
+FROM (
+    SELECT salary,
+           DENSE_RANK() OVER (ORDER BY salary DESC) AS rnk
+    FROM employees
+) t
+WHERE rnk = 3;
 ```
 
 ## View

@@ -1,3 +1,92 @@
+
+## REST APIs
+- REST (Representational State Transfer) is an architectural style for designing networked applications, typically over HTTP.
+
+```
+/users        (POST → create)
+/users/123    (GET → read)
+/users/123    (DELETE → delete)
+```
+
+### GET
+- Retrieve data from server
+- Idempotent
+- Use case
+    - Fetch user profile
+    - Get list of orders
+    - Search/filter data
+
+```
+GET /users/123
+
+{
+  "id": 123,
+  "name": "Bilal"
+}
+```
+### POST 
+- Create a new resource
+- Not Idempotent
+- Use case 
+    - Create user
+    - Submit form
+    - Trigger non-idempotent action (payment)
+- There is size limit for POST data but it not defined by HTTP spec and it depends on infrastructure. `413 Payload Too Large`
+
+```
+POST /users
+Content-Type: application/json
+
+{
+  "name": "John"
+}
+```
+### PUT
+- Replace entire resource (Full update / Replace)
+- Idempotent
+- Missing fields will be overwritten
+
+```
+PUT /users/123
+Content-Type: application/json
+
+{
+  "name": "John",
+  "email": "john@example.com"
+}
+```
+### PATCH
+- Update only specific fields (Partial update)
+- Not strictly idempotent
+
+```
+PATCH /users/123
+Content-Type: application/json
+
+{
+  "email": "new@email.com"
+}
+```
+### DELETE 
+- Delete a resource
+- Idempotent
+
+```
+DELETE /users/123
+```
+
+## PUT vs PATCH
+
+|  Aspect | PUT | PATCH |
+| --- | --- | --- |
+| type| Full replace | partial replace |
+| idempotent| always | not guaranteed |
+| payload | Full object | partial fields |
+| risk | overwrites missing field | safer |
+| use case | replace resource | modify some fields |
+
+
+
 ## HTTP
 - HTTP (HyperText Transfer Protocol) is a stateless, application-layer protocol used for communication between clients (e.g., browser, mobile app) and servers over a network.
 - It follows a request → response model
