@@ -774,6 +774,9 @@ ON e.manager_id = m.id;
 | Alice |
 | Bob|
 | Charlie |
+
+
+
 | name |
 | --- |
 | Bob|
@@ -1238,6 +1241,10 @@ CREATE INDEX idx_orders_user ON orders(user_id);
 | subject | room |
 | --- | --- |
 | | |
+
+
+
+
 | teacher | subject |
 | --- | --- |
 | | |

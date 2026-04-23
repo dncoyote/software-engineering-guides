@@ -204,6 +204,58 @@ GET /users/123?version=2
 ```
 - Header versioning
 
+## Multipart Upload 
+- Multipart upload is a way to send multiple pieces of data (files + fields) in a single HTTP request using `multipart/form-data`.
+- Normal JSON Request, this not suitable for binary data (images, videos).
+
+```
+POST /upload
+Content-Type: application/json
+```
+- Multipart solves this by sending request with multiple compartments
+
+```
+POST /upload
+Content-Type: multipart/form-data; boundary=----XYZ
+```
+
+```
+------XYZ
+Content-Disposition: form-data; name="file"; filename="image.png"
+Content-Type: image/png
+
+(binary data)
+------XYZ
+Content-Disposition: form-data; name="userId"
+
+123
+------XYZ--
+```
+
+```java
+@RestController
+@RequestMapping("/upload")
+public class FileUploadController {
+
+    @PostMapping
+    public String uploadFile(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("userId") String userId) {
+
+        System.out.println("File name: " + file.getOriginalFilename());
+        System.out.println("User ID: " + userId);
+
+        return "Uploaded successfully";
+    }
+}
+```
+
+## Multi-readable Request
+- A multi-readable request is a request whose body can be read multiple times.
+- In most frameworks (like Spring / Servlet API) request body can be read only once. Once it is consumed, it is gone.
+- A multi-readable request wraps the original request and caches the body in memory, allowing multiple components like filters and controllers to read it safely. 
+- This is typically implemented using a custom HttpServletRequestWrapper in frameworks like Spring.
+
 ## HTTP
 - HTTP (HyperText Transfer Protocol) is a stateless, application-layer protocol used for communication between clients (e.g., browser, mobile app) and servers over a network.
 - It follows a request → response model
@@ -357,6 +409,57 @@ Authorization: Bearer <token>
 - This created Session ID is stored in the server (Memory / Redis / DB) and then send to the Client where it can be stored in cookie.
 - During subsequent requests, server looks up session and retrieves user info from the cookie.
 
+## PKCE
+- PKCE (Proof Key for Code Exchange) is a security extension to OAuth 2.0 that protects the authorization code flow from interception attacks.
+- It works by having the client generate a code verifier and a derived code challenge.
+- The authorization server stores the challenge, and when exchanging the authorization code for a token, the client must provide the original verifier. 
+- The server validates it, ensuring that only the original client can complete the flow.
+
+## OAuth 2.0
+- OAuth 2.0 is an authorization framework that allows a third-party application to access a user’s resources without exposing their credentials.
+- It works by issuing access tokens through flows like the authorization code flow. These tokens are then used to access protected APIs.
+- OAuth is about authorization, and when authentication is needed, it is typically combined with OpenID Connect.
+##### Flow 
+- User → clicks login
+- Client → redirects to Authorization Server
+- User logs in
+- Authorization Server → returns code
+- Client → exchanges code for token
+    - Access Tokens - Used to call APIs, short-lived.
+    - Refresh Token - Used to get new access tokens, Long-lived.
+- Client → uses token to call API
+
+```
+GET /user
+Authorization: Bearer abc123
+```
+ 
+## OIDC
+- OIDC (OpenID Connect) is an authentication protocol built on top of OAuth 2.0 that allows clients to verify a user’s identity and obtain basic profile information using an ID Token, typically JWT.
+- Use OIDC when you want Social login (Google, Facebook), SSO (Single Sign-On), Enterprise authentication
+- In Spring boot we can use `spring-boot-starter-oauth2-client` and add the config.
+
+```
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: xxx
+            client-secret: xxx
+```
+##### Flow 
+- User clicks "Login with Google"
+- Client → redirects to IdP
+- User authenticates at IdP
+- IdP → returns authorization code
+- Client → exchanges code for tokens
+- Client receives:
+   - ID Token
+   - Access Token
+- Client verifies ID Token
+
 ## Distributed Transaction
 - Distributed Transaction is a transaction that spans multiple systems or services, ensuring all operations either commit together or rollback together.
 - Distributed Transaction is harder to manage in microservices as there are Multiple services, Multiple databases and Network calls and we can be hit with Network failures or Partial success scenarios.
@@ -365,17 +468,31 @@ Authorization: Bearer <token>
   - Saga Pattern - A Saga is a sequence of local transactions where each step has a compensating action if something fails.
 - Distributed Transaction ensures eventual consistency over strict consistency.
 
-## Difference between PUT vs PATCH
-## Idempotency?
+## SQL Injection
+- SQL Injection (SQLi) is a vulnerability where an attacker injects malicious SQL into input fields, causing your application to execute unintended queries.
+- The primary prevention technique is using prepared statements or parameterized queries, which separate query structure from data. Additional measures include input validation, least privilege database access, and avoiding dynamic query construction using string concatenation.
+
+## SSRF
+- SSRF (Server-Side Request Forgery) is a vulnerability where an attacker tricks your server into making HTTP requests to unintended locations.
+- It occurs when user-controlled input is used to construct outbound requests without proper validation. 
+- To prevent SSRF, we should use strict allowlisting of domains, validate and resolve URLs to block internal IP ranges, disable automatic redirects, restrict protocols, and enforce network-level protections. Ideally, user input should not directly control outbound requests.
+
+## CSRF
+- CSRF (Cross-Site Request Forgery) is an attack where a malicious site tricks a user’s browser into making authenticated requests to your application without the user’s intent.
+- The browser automatically sends credentials (cookies) — even if the request was triggered by a malicious site.
+- To prevent CSRF, we use anti-CSRF tokens, SameSite cookies, and sometimes validate Origin headers.
+- Using Authorization headers instead of cookies can also mitigate CSRF risk since tokens are not automatically sent by browsers.
+
+## XSS
+- XSS (Cross-Site Scripting) is a vulnerability where an attacker injects malicious JavaScript into your application, which is then executed in another user’s browser.
+- It typically occurs when input is rendered without proper escaping. 
+- To prevent XSS, we should use output encoding, avoid inserting raw HTML, use framework auto-escaping, implement Content Security Policy, and ensure cookies are marked HttpOnly to prevent theft.
+
+
 ## Authentication (JWT, OAuth)
 ## Authentication works over HTTP
-## SQL Injection
-## SSRF
 ## OIDC
 ## Cookies vs Sessions vs JWT
-## API security best practices
-## API Versioning 
-## Status codes
 ## REST API design
 ## API Gateway & Load Balancer & Reverse Proxy
 ## Caching strategies
