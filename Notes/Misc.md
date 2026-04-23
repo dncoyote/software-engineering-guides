@@ -21,7 +21,7 @@ GET /users/123
 
 {
   "id": 123,
-  "name": "Bilal"
+  "name": "John"
 }
 ```
 ### POST 
@@ -118,7 +118,7 @@ DELETE /users/123
 {
   "data": {
     "id": 123,
-    "name": "Bilal"
+    "name": "John"
   },
   "meta": {
     "requestId": "a1b2c3"
@@ -459,6 +459,22 @@ spring:
    - ID Token
    - Access Token
 - Client verifies ID Token
+
+## SSO 
+- SSO (Single Sign-On) is a mechanism that allows a user to authenticate once and gain access to multiple applications without logging in again.
+- It is typically implemented using protocols like OpenID Connect or SAML, where the identity provider issues tokens that are validated by the applications.
+##### Flow
+- User → App A
+- App A → redirects to IdP
+- User logs in at IdP
+- IdP → issues token
+- User → redirected back to App A
+- App A validates token
+- User → App B
+- App B → redirects to IdP
+- IdP sees user already authenticated
+- IdP → issues token (no login needed)
+- App B grants access
 
 ## Distributed Transaction
 - Distributed Transaction is a transaction that spans multiple systems or services, ensuring all operations either commit together or rollback together.

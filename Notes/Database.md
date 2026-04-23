@@ -974,101 +974,6 @@ END;
 SELECT SQUARE(5);
 ```
 
-## One-Many Relationship
-- In a one-to-many relationship, one record in the first table (parent table) can be associated with multiple records in the second table (child table), but each record in the second table is associated with only one record in the first table.
-
-```sql
-CREATE TABLE department (
-    department_id INT PRIMARY KEY,
-    department_name VARCHAR(255)
-);
-
-CREATE TABLE employee (
-    employee_id INT PRIMARY KEY,
-    employee_name VARCHAR(255),
-    department_id INT,
-    FOREIGN KEY (department_id) REFERENCES department(department_id)
-);
-```
-- The department table stores information about departments.
-- The employee table stores information about employees.
-- The employee table has a foreign key (department_id) that references the primary key of the department table.
-- An employee belongs to one department, but a department can have multiple employees.
-
-## Many-to-One Relationship
-- A many-to-one relationship is essentially the reverse of a one-to-many relationship. In a many-to-one relationship, many records in the first table can be associated with one record in the second table.
-
-```sql
-CREATE TABLE department (
-    department_id INT PRIMARY KEY,
-    department_name VARCHAR(255)
-);
-
-CREATE TABLE employee (
-    employee_id INT PRIMARY KEY,
-    employee_name VARCHAR(255),
-    department_id INT,
-    FOREIGN KEY (department_id) REFERENCES department(department_id)
-);
-```
-- The department table stores information about departments.
-- The employee table stores information about employees.
-- The employee table has a foreign key (department_id) that references the primary key of the department table.
-- Many employees can belong to the same department, but each employee belongs to only one department.
-
-## Many-Many Relationship
-
-In a relational database, the relationship between the "author" and "book" tables is typically modeled using a foreign key. There are different types of relationships, and in this case, it sounds like a many-to-many relationship because one author can write many books, and one book can have multiple authors.
-
-To represent a many-to-many relationship between the "author" and "book" tables, you need a third table, often called a junction or linking table. This table serves to link authors to books, indicating which authors are associated with which books. Here's a basic schema for such a setup:
-
-```sql
-CREATE TABLE author (
-    author_id INT PRIMARY KEY,
-    author_name VARCHAR(255)
-);
-
-CREATE TABLE book (
-    book_id INT PRIMARY KEY,
-    book_title VARCHAR(255)
-);
-
-CREATE TABLE author_book (
-    author_id INT,
-    book_id INT,
-    PRIMARY KEY (author_id, book_id),
-    FOREIGN KEY (author_id) REFERENCES author(author_id),
-    FOREIGN KEY (book_id) REFERENCES book(book_id)
-);
-```
-- The author table stores information about authors.
-- The book table stores information about books.
-- The author_book table is the junction table that establishes the many-to-many relationship. It contains foreign keys referencing the primary keys of the author and book tables. The combination of author_id and book_id forms a composite primary key for this table.
-- One author can be associated with multiple books.
-- One book can have multiple authors.
-- The author_book table keeps track of these associations.
-
-```sql
--- Insert authors
-INSERT INTO author (author_id, author_name) VALUES
-(1, 'Author A'),
-(2, 'Author B'),
-(3, 'Author C');
-
--- Insert books
-INSERT INTO book (book_id, book_title) VALUES
-(101, 'Book X'),
-(102, 'Book Y'),
-(103, 'Book Z');
-
--- Associate authors with books
-INSERT INTO author_book (author_id, book_id) VALUES
-(1, 101),  -- Author A wrote Book X
-(1, 102),  -- Author A also wrote Book Y
-(2, 101),  -- Author B wrote Book X as well
-(3, 103);  -- Author C wrote Book Z
-```
-
 ## Partition
 - A Partition is a situation where a distributed system is split into two or more groups of nodes that cannot communicate with each other due to a network failure.
 
@@ -1249,6 +1154,351 @@ CREATE INDEX idx_orders_user ON orders(user_id);
 | --- | --- |
 | | |
 
+
+## JPA
+- JPA (Java Persistence API) is a Java specification (standard) that defines how Java objects should be mapped to relational databases.
+- It is a set of interfaces + annotations + rules.
+- Earlier every ORM had its own API, so code was tightly coupled to specific implementation (Switching ORM = rewriting code). 
+- JPA was created to solve this.
+- It provides interfaces like `EntityManager` and standard annotations such as `@Entity` and `@Id`. It does not perform persistence itself but is implemented by ORM frameworks like Hibernate.
+
+## Hibernate
+- Hibernate is an ORM (Object-Relational Mapping) framework for Java that maps Java objects to relational database tables and handles database operations automatically.
+- It lets you work with Java objects instead of SQL queries, while it handles SQL behind the scenes.
+- Hibernate implements the JPA specification and handles SQL generation, caching, and object lifecycle management internally, allowing developers to work with objects instead of writing SQL.
+- Without Hibernate we will need to add a lot of boilerplate code and use manual SQL making it harder to maintain.
+
+| Component | Role |
+| --- | --- |
+| JPA |  Standard (interfaces) |
+| Hibernate | Implentation |
+| Spring Data JPA | Convenience layer |
+
+- Hibernate defines an Object ↔ Table Mapping
+    - Hibernate maps Class → Table and Fields → Columns
+
+```java
+@Entity
+@Table(name = "users")
+public class User {
+
+    @Id
+    @GeneratedValue
+    private Long id;
+
+    private String name;
+}
+```
+- Hibernate maintains a Session (Persistence Context)
+    - It tracks objects in memory
+    - Ensures consistency
+    - Avoids duplicate queries
+- Hibernate generates SQL dynamically
+
+```java
+userRepository.save(new User("John"));
+```
+
+```sql
+//Hibernate checks entity metadata and generates and executes SQL
+INSERT INTO users (name) VALUES ('John');
+```
+
+## Spring Data JPA
+- Spring Data JPA is a module of Spring Boot that simplifies database access by providing abstraction over JPA (Java Persistence API) to interact with relational databases using repositories instead of boilerplate code.
+- Without Spring Data JPA we will need to write too much boilerplate and error-prone code that is hard to maintain.
+- Entities, Repository layer and Service layer form the core components of Spring Data JPA in an application.
+- Spring Data JPA supports CRUD Operations (Out of the Box)
+```java
+repo.save(user);         // create/update
+repo.findById(id);       // read
+repo.findAll();          // read all
+repo.deleteById(id);     // delete
+```
+- Spring Data JPA supports `PagingAndSortingRepository`
+```java
+findAll(Pageable pageable)
+findAll(Sort sort)
+```
+- Spring Data JPA supports Query Methods (Derived Queries) that Spring generates automatically.
+```java
+List<User> findByEmail(String email);
+List<User> findByNameAndAge(String name, int age);
+```
+- Spring Data JPA supports Custom queries using JPQL and Native SQL
+```java
+//JPQL
+@Query("SELECT u FROM User u WHERE u.email = :email")
+User findUserByEmail(@Param("email") String email);
+```
+```java
+//Native SQL
+@Query(value = "SELECT * FROM users WHERE email = ?", nativeQuery = true)
+User findByEmail(String email);
+```
+#### Spring Data JPA Solution
+- By using pure JPA we need to write repetitive code 
+
+```java
+@PersistenceContext
+private EntityManager em;
+
+public User findById(Long id) {
+    return em.find(User.class, id);
+}
+```
+- With Spring Data JPA, CRUD methods are auto-implemented after defining this
+
+```java
+public interface UserRepository extends JpaRepository<User, Long> {
+}
+```
+
+## JPA vs Hibernate vs Spring Data JPA 
+- JPA is a specification that defines how Java objects should be persisted to relational databases. Hibernate is an implementation of JPA that actually performs ORM operations like SQL generation, caching, and entity lifecycle management. Spring Data JPA is a higher-level abstraction built on top of JPA that simplifies data access by providing repository-based APIs and reducing boilerplate code. In a typical Spring Boot application, we use Spring Data JPA, which internally uses JPA APIs implemented by Hibernate.
+
+| Aspect | JPA | Hibernate | Spring Data JPA |
+| --- | --- | --- | --- |
+| Type | Specification | Implementation | Abstraction |
+| Purpose | Define ORM standards | ORM | Simplify usage |
+| SQL Execution | No | Yes | Yes |
+| Dependency | None | Implements JPA | Depends on JPA |
+
+
+```
+Spring Data JPA
+   ↓
+EntityManager.persist()   (JPA)
+   ↓
+Hibernate
+   ↓
+Database
+```
+
+- Hibernate is rarely used directly, but if we want to use directly then we create and use `EntityManager` and `Session`.
+
+```java
+Session session = sessionFactory.openSession();
+session.save(user);
+
+entityManager.persist(user);
+```
+- This can be avoided if we use Spring Data JPA
+
+```java
+userRepository.save(user);
+```
+
+## Persistence Context
+- Persistence Context is a memory space (cache) where JPA/Hibernate manages entity objects during a transaction.
+- It is a first-level cache managed by JPA where entities are stored and tracked during a transaction. 
+- It ensures that each entity is uniquely represented, tracks changes automatically through dirty checking, and synchronizes updates with the database during flush or commit. It improves performance by reducing redundant database calls and maintains consistency within a transaction. 
+
+## EntityManager 
+- EntityManager is a JPA interface used to interact with the persistence context and perform database operations on entities.
+- It is the core API of JPA.
+- It provides methods to perform CRUD operations, manage entity lifecycle, and execute queries. It acts as a bridge between the application and the persistence context, and internally delegates work to the JPA implementation like Hibernate.
+
+```java
+entityManager.persist(user);   // CREATE
+entityManager.find(User.class, 1L); // READ
+entityManager.merge(user);     // UPDATE
+entityManager.remove(user);    // DELETE
+```
+
+## Session 
+- Session is the core Hibernate interface used to manage persistence operations, entity lifecycle, and the first-level cache. It is the underlying implementation behind JPA’s EntityManager.
+- While EntityManager provides a standard API, Session offers additional Hibernate-specific features and fine-grained control over persistence operations.
+- You typically don’t use Session directly. Instead we use Spring Data JPA that automatically uses EntityManager and creates a session.
+
+```java
+Session session = sessionFactory.openSession();
+Transaction tx = session.beginTransaction();
+
+User user = new User("John");
+session.save(user);
+
+tx.commit();
+session.close();
+```
+- It provides all the CRUD Operations
+
+```java
+Session session = sessionFactory.openSession();
+
+session.save(user);       // CREATE
+session.get(User.class, 1L); // READ
+session.update(user);     // UPDATE
+session.delete(user);     // DELETE
+```
+
+## Entity
+- An Entity is a Java class annotated with `@Entity` that represents a table in a relational database. Each instance of the class corresponds to a row in the table, and fields are mapped to columns. JPA uses these entities to manage persistence, and Hibernate uses the metadata to generate SQL and perform database operations.
+- It is a Java object that represents a row in a database table. It is a POJO (Plain Old Java Object) annotated so that JPA/Hibernate can map it to a table.
+
+```java
+import jakarta.persistence.*;
+
+@Entity // Marks this class as an entity
+@Table(name = "users") // Optional: maps to table name
+public class User {
+
+    @Id // Primary key
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "name") // Optional mapping
+    private String name;
+
+    // Default constructor (required)
+    public User() {}
+
+    public User(String name) {
+        this.name = name;
+    }
+
+    // Getters and setters
+}
+```
+
+## `@Table`
+
+## `@Access`
+
+## `@Id` 
+
+## `@GeneratedValue`
+
+## `@EmbeddedId` 
+
+## `@Column` 
+
+## `@OneToOne` 
+
+## `@Cascade` 
+
+## `@PrimaryKeyJoinColumn` 
+
+## One-Many Relationship
+- In a one-to-many relationship, one record in the first table (parent table) can be associated with multiple records in the second table (child table), but each record in the second table is associated with only one record in the first table.
+
+```sql
+CREATE TABLE department (
+    department_id INT PRIMARY KEY,
+    department_name VARCHAR(255)
+);
+
+CREATE TABLE employee (
+    employee_id INT PRIMARY KEY,
+    employee_name VARCHAR(255),
+    department_id INT,
+    FOREIGN KEY (department_id) REFERENCES department(department_id)
+);
+```
+- The department table stores information about departments.
+- The employee table stores information about employees.
+- The employee table has a foreign key (department_id) that references the primary key of the department table.
+- An employee belongs to one department, but a department can have multiple employees.
+
+## Many-to-One Relationship
+- A many-to-one relationship is essentially the reverse of a one-to-many relationship. In a many-to-one relationship, many records in the first table can be associated with one record in the second table.
+
+```sql
+CREATE TABLE department (
+    department_id INT PRIMARY KEY,
+    department_name VARCHAR(255)
+);
+
+CREATE TABLE employee (
+    employee_id INT PRIMARY KEY,
+    employee_name VARCHAR(255),
+    department_id INT,
+    FOREIGN KEY (department_id) REFERENCES department(department_id)
+);
+```
+- The department table stores information about departments.
+- The employee table stores information about employees.
+- The employee table has a foreign key (department_id) that references the primary key of the department table.
+- Many employees can belong to the same department, but each employee belongs to only one department.
+
+## Many-Many Relationship
+
+In a relational database, the relationship between the "author" and "book" tables is typically modeled using a foreign key. There are different types of relationships, and in this case, it sounds like a many-to-many relationship because one author can write many books, and one book can have multiple authors.
+
+To represent a many-to-many relationship between the "author" and "book" tables, you need a third table, often called a junction or linking table. This table serves to link authors to books, indicating which authors are associated with which books. Here's a basic schema for such a setup:
+
+```sql
+CREATE TABLE author (
+    author_id INT PRIMARY KEY,
+    author_name VARCHAR(255)
+);
+
+CREATE TABLE book (
+    book_id INT PRIMARY KEY,
+    book_title VARCHAR(255)
+);
+
+CREATE TABLE author_book (
+    author_id INT,
+    book_id INT,
+    PRIMARY KEY (author_id, book_id),
+    FOREIGN KEY (author_id) REFERENCES author(author_id),
+    FOREIGN KEY (book_id) REFERENCES book(book_id)
+);
+```
+- The author table stores information about authors.
+- The book table stores information about books.
+- The author_book table is the junction table that establishes the many-to-many relationship. It contains foreign keys referencing the primary keys of the author and book tables. The combination of author_id and book_id forms a composite primary key for this table.
+- One author can be associated with multiple books.
+- One book can have multiple authors.
+- The author_book table keeps track of these associations.
+
+```sql
+-- Insert authors
+INSERT INTO author (author_id, author_name) VALUES
+(1, 'Author A'),
+(2, 'Author B'),
+(3, 'Author C');
+
+-- Insert books
+INSERT INTO book (book_id, book_title) VALUES
+(101, 'Book X'),
+(102, 'Book Y'),
+(103, 'Book Z');
+
+-- Associate authors with books
+INSERT INTO author_book (author_id, book_id) VALUES
+(1, 101),  -- Author A wrote Book X
+(1, 102),  -- Author A also wrote Book Y
+(2, 101),  -- Author B wrote Book X as well
+(3, 103);  -- Author C wrote Book Z
+```
+
+## First level caching
+
+## Second level caching
+
+## Query cache 
+
+## Eager Loading 
+
+## Lazy Loading
+
+## save() vs saveAndFlush() 
+
+## `getCurrentSession()` 
+
+## `openSession()` 
+
+## `get()`
+
+## `load()` 
+
+## JPQL
+
+## Criteria API
+
+## Native Query 
 
 ## MongoDB
 - MongoDB is a document-oriented NoSQL database that stores data as JSON-like documents (Binary JSON - BSON) instead of rows and columns.
