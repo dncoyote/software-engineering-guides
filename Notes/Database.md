@@ -1379,6 +1379,303 @@ public class User {
 
 ## `@PrimaryKeyJoinColumn` 
 
+## One-to-One Relationship
+- A One-to-One relationship means one row in table A is related to exactly one row in table B 
+- Consider this example, `users` table stores login/account data, `user_profiles` table stores profile-specific info
+- Each user has one profile and each profile belongs to one user.
+
+| id | email | password_hash |
+| --- | --- | --- |
+| 1 | john@email.com | xxxx |
+| 2 | alice@email.com | yyyy |
+
+
+
+| id | user_id | full_name | phone |
+| --- | --- | --- | --- |
+| 101 | 1 | John | 99999 |
+| 102 | 2 | Alice | 88888 |
+
+
+```java
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "users")
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
+    // Inverse side of the relationship
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private UserProfile profile;
+
+    public User() {}
+
+    public User(String email, String passwordHash) {
+        this.email = email;
+        this.passwordHash = passwordHash;
+    }
+
+    public void setProfile(UserProfile profile) {
+        this.profile = profile;
+        if (profile != null) {
+            profile.setUser(this); // keep both sides consistent
+        }
+    }
+
+    // getters and setters
+}
+```
+
+```java
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "user_profiles")
+public class UserProfile {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "full_name")
+    private String fullName;
+
+    private String phone;
+
+    // Owning side: this side holds the foreign key column
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private User user;
+
+    public UserProfile() {}
+
+    public UserProfile(String fullName, String phone) {
+        this.fullName = fullName;
+        this.phone = phone;
+    }
+
+    public void setUser(User user) {
+        this.user = user;
+    }
+
+    // getters and setters
+}
+```
+
+## One-to-Many Relationship 
+- A One-to-Many relationship means one parent row is related to many child rows
+- Consider this example, `Order` and `OrderItem` where one order can have many order items and each order item belongs to one order 
+
+| id | customer_id | status |
+| --- | --- | --- |
+| 1001 | 1 | PLACED |
+
+
+
+| id  | order_id | product_id | quantity | unit_price |
+| --- | --- | --- | --- | --- |
+| 5001 | 1001 | 11 | 2 | 799|
+| 5002 | 1001 | 15 | 1 | 1499 |
+
+
+```java
+import jakarta.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+
+@Entity
+@Table(name = "orders")
+public class Order {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "customer_id", nullable = false)
+    private Long customerId;
+
+    @Column(nullable = false)
+    private String status;
+
+    // Inverse side
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<OrderItem> items = new ArrayList<>();
+
+    public Order() {}
+
+    public Order(Long customerId, String status) {
+        this.customerId = customerId;
+        this.status = status;
+    }
+
+    public void addItem(OrderItem item) {
+        items.add(item);
+        item.setOrder(this);
+    }
+
+    public void removeItem(OrderItem item) {
+        items.remove(item);
+        item.setOrder(null);
+    }
+
+    // getters and setters
+}
+```
+
+```java
+import jakarta.persistence.*;
+import java.math.BigDecimal;
+
+@Entity
+@Table(name = "order_items")
+public class OrderItem {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "product_id", nullable = false)
+    private Long productId;
+
+    @Column(nullable = false)
+    private Integer quantity;
+
+    @Column(name = "unit_price", nullable = false)
+    private BigDecimal unitPrice;
+
+    // Owning side
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
+
+    public OrderItem() {}
+
+    public OrderItem(Long productId, Integer quantity, BigDecimal unitPrice) {
+        this.productId = productId;
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
+    }
+
+    public void setOrder(Order order) {
+        this.order = order;
+    }
+
+    // getters and setters
+}
+```
+## Many-to-Many Relationship
+- A Many-to-Many relationship means many rows in table A can relate to many rows in table B
+- Consider this example, `User` and `Role`, one user can have many roles and one role can be assigned to many users 
+
+| id | email |
+| --- | --- |
+| 1 | john@email.com |
+| 2 | alice@email.com |
+
+
+| id | name |
+| --- | --- |
+| 10 |  ADMIN |
+| 20 |  SUPPORT |
+
+- In this case we need to create a join table `user_roles`
+
+```sql
+CREATE TABLE user_roles (
+    user_id BIGINT NOT NULL,
+    role_id BIGINT NOT NULL,
+    PRIMARY KEY (user_id, role_id),
+    CONSTRAINT fk_user_roles_user
+        FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_user_roles_role
+        FOREIGN KEY (role_id) REFERENCES roles(id)
+);
+```
+
+| user_id | role_id |
+| --- | --- |
+| 1 | 10|
+| 1 | 20|
+| 2 | 20|
+
+
+```java
+import jakarta.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
+
+@Entity
+@Table(name = "users")
+public class User {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @ManyToMany
+    @JoinTable(
+        name = "user_roles",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
+
+    public User() {}
+
+    public User(String email) {
+        this.email = email;
+    }
+
+    public void addRole(Role role) {
+        roles.add(role);
+    }
+
+    // getters and setters
+}
+```
+
+```java
+import jakarta.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
+
+@Entity
+@Table(name = "roles")
+public class Role {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true)
+    private String name;
+
+    @ManyToMany(mappedBy = "roles")
+    private Set<User> users = new HashSet<>();
+
+    public Role() {}
+
+    public Role(String name) {
+        this.name = name;
+    }
+
+    // getters and setters
+}
+```
+- We need not create a separate entity for `user_roles` in a basic `@ManyToMany` but you should create one when the join table has business meaning or extra columns.
 ## One-Many Relationship
 - In a one-to-many relationship, one record in the first table (parent table) can be associated with multiple records in the second table (child table), but each record in the second table is associated with only one record in the first table.
 
@@ -1484,7 +1781,46 @@ INSERT INTO author_book (author_id, book_id) VALUES
 
 ## Lazy Loading
 
+## Cascade Type
+- Cascade Type defines how operations performed on a parent entity are automatically propagated to its related child entities.
+- Consider tables with parent child relationship, cascade types controls the behavior on what happens to related entities when action is performed on parent entity.
+#### Types 
+- PERSIST - When parent is saved → child is saved
+
+```java
+cascade = CascadeType.PERSIST
+```
+- MERGE - When parent is updated → child is updated
+
+```java
+cascade = CascadeType.MERGE
+```
+- REMOVE - When parent is deleted → child is deleted
+
+```java
+cascade = CascadeType.REMOVE
+```
+- REFRESH - Reload parent + child from DB 
+
+```java
+cascade = CascadeType.REFRESH
+```
+- DETACH - Detach parent + child from persistence context
+
+```java
+cascade = CascadeType.DETACH
+```
+- ALL - PERSIST + MERGE + REMOVE + REFRESH + DETACH
+
+```java
+cascade = CascadeType.ALL
+```
+
+## orphanRemoval 
+
 ## save() vs saveAndFlush() 
+
+## persist() 
 
 ## `getCurrentSession()` 
 
