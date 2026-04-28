@@ -1727,10 +1727,21 @@ public class Main {
     }
 }
 ```
+- Prefer interfaces for APIs and services
+
+```java
+// Real-world example
+public interface UserRepository {
+    User findById(Long id);
+}
+```
+- Spring provides the implementation → you depend on abstraction.
+
 #### `default` methods
 - A `default` method in an interface is a method with a body (implementation) that classes implementing the interface automatically inherit.
 - If a class implements two interfaces that have the same `default` method, you must resolve the conflict by overriding it.
 - `default` method  doesn’t exist in abstract classes — as they just have normal methods with bodies, which serve the same purpose.
+
 ## Abstract Classes
 - An abstract class is a class that cannot be instantiated directly, but can be extended by other classes. It serves as a blueprint for other classes to derive from and provides common functionality that can be inherited by its subclasses.
 - An abstract class may contain abstract methods (methods without implementation).
@@ -1774,6 +1785,20 @@ public class Main {
 }
 ```
 - Abstract classes exist when you want a common base class with shared behavior, but some parts must be implemented differently by subclasses.
+- Use abstract classes for base implementations
+
+```java
+// Real-world example
+abstract class BaseEntity {
+    protected Long id;
+    protected LocalDateTime createdAt;
+
+    public void audit() {
+        System.out.println("Auditing entity");
+    }
+}
+```
+- Now all entities share ID, timestamps, audit logic. 
 
 ## Abstract Class vs Interface
 
@@ -1787,6 +1812,19 @@ public class Main {
 | State| Can hold state | No instance state |
 | Access Modifier| Any | Methods are `public` by defaultell3 |
 | Relationship| IS-A relationship| CAN-DO relationship|
+- We can combine them both
+
+```java
+interface Payment {
+    void pay();
+}
+
+abstract class BasePayment implements Payment {
+    protected void log() {
+        System.out.println("Logging payment");
+    }
+}
+```
 
 # Collections Framework 
 - The Collections Framework (JCF) is a unified architecture for storing, manipulating, and transferring groups of objects.
