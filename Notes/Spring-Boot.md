@@ -475,6 +475,43 @@ public class UserService {
 // Here SmsService is injected
 ```
 
+## `@ConditionalOnMissingBean` 
+- `@ConditionalOnMissingBean` is an annotation that tells Spring to create this bean ONLY IF no other bean of the same type already exists in the application context.
+- Spring scans configuration classes and when it encounters a bean with `@ConditionalOnMissingBean`it checks if there is already a bean of this type, if no bean exists then then this bean is created, if a bean already exists then this bean is skipped.
+- This scan and check is evaluated during ApplicationContext startup.
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    @ConditionalOnMissingBean
+    public PaymentService paymentService() {
+        return new DefaultPaymentService();
+    }
+}
+```
+
+```java
+public class DefaultPaymentService implements PaymentService {
+
+    @Override
+    public void processPayment() {
+        System.out.println("Processing payment via default service");
+    }
+}
+```
+
+```java
+@Service
+public class CustomPaymentService implements PaymentService {
+
+    @Override
+    public void processPayment() {
+        System.out.println("Processing payment via custom service");
+    }
+}
+```
+
 ## Spring Data JPA
 - Spring Data JPA is a module of Spring Boot that simplifies database access by providing abstraction over JPA (Java Persistence API) to interact with relational databases using repositories instead of boilerplate code.
 - Without Spring Data JPA we will need to write too much boilerplate and error-prone code that is hard to maintain.
@@ -1824,6 +1861,15 @@ Flux<User> users = repo.findAll();
     - UI text
     - Keep business logic language-neutral.
  
+## Hikari CP 
+- HikariCP is a high-performance JDBC connection pool used to manage and reuse database connections efficiently.
+- Connection Pool keeps a pool of ready-to-use DB connections.
+- Pool creates N connections at startup
+- App requests a connection
+- Pool gives available connection
+- App uses it
+- Connection returned to pool (not closed)
+
 ## End to End Spring Boot project
 - So assuming that this a simple REST CRUD with DB (JPA) and validation, I’ll implement layered architecture: Controller → Service → Repository (DAO) → Entity, with DTOs, validation, and global exception handling.
 - I am going to develop this for a User Management system.

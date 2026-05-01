@@ -150,6 +150,7 @@ java HelloWorld
     - Collection here = Major GC / Full GC (slower, can pause app).
 - Metaspace (Java 8+)
     - Stores class metadata.
+    - Earlier we had PermGen (permanent generation), this is now replaced with Metaspace.
     - Managed separately from heap, but also GC’d.
 
 ## What is `public static void main(String args[])`?
@@ -3527,6 +3528,19 @@ User user = userOpt.orElse(getDefaultUser());
 
 User user = userOpt.orElseGet(() -> getDefaultUser());
 ```
+
+## `var`
+- `var` is used for local variable type inference.
+- The compiler infers the type from the right-hand side at compile time.
+- We can use `var` for local variables only, it is not allowed for instance variables and method params.
+- `var` should always be initialized.
+
+```java
+var name = "John";      // inferred as String
+var count = 10;          // inferred as int
+var price = 10.5;        // inferred as double
+```
+
 ## Method Reference
 - A method reference is a shorthand syntax for a lambda expression that calls an existing method.
 - It improves readability and support functional programming
@@ -3741,6 +3755,55 @@ public class RunnableDemo{
 Thread-2 -> count = 3
 Thread-0 -> count = 1
 Thread-1 -> count = 2
+```
+
+## Callable Interface 
+- Callable Interface is a functional interface in Java that represents a task that returns a result and can throw an exception.
+- With Runnable interface we cannot throw exception or return a result making it harder to work with real world async workflows.
+- It has a method `call()`.
+- We cannot run `Callable` directly, it must be executed by `ExecutorService`.
+
+```java
+import java.util.concurrent.Callable;
+
+class SumTask implements Callable<Integer> {
+
+    private int a;
+    private int b;
+
+    public SumTask(int a, int b) {
+        this.a = a;
+        this.b = b;
+    }
+
+    @Override
+    public Integer call() throws Exception {
+        return a + b;
+    }
+}
+```
+
+```java
+import java.util.concurrent.*;
+
+public class Main {
+    public static void main(String[] args) throws Exception {
+
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        Callable<Integer> task = () -> {
+            return 10 + 20;
+        };
+
+        Future<Integer> future = executor.submit(task);
+
+        Integer result = future.get(); // blocks until result is ready
+
+        System.out.println("Result: " + result);
+
+        executor.shutdown();
+    }
+}
 ```
 
 ## `start()` vs `run()` 

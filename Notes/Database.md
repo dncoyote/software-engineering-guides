@@ -1038,6 +1038,11 @@ CREATE INDEX idx_orders_user ON orders(user_id);
     - Replication
     - Caching (Redis)
 
+## N+1 Problem 
+- The N+1 problem occurs when an application executes one query to fetch a list of entities and then executes additional queries for each entity to fetch related data. 
+- This leads to performance issues due to excessive database calls. 
+- It can be solved using techniques like JOIN queries, batch fetching, eager loading, or DTO projections to reduce the number of queries.
+
 ## Normalization
 - Normalization is the process of structuring a relational database to minimize redundancy and dependency by organizing data into multiple related tables.
 - Eliminate duplication and organizing data to avoid redundancy.
@@ -1676,100 +1681,6 @@ public class Role {
 }
 ```
 - We need not create a separate entity for `user_roles` in a basic `@ManyToMany` but you should create one when the join table has business meaning or extra columns.
-## One-Many Relationship
-- In a one-to-many relationship, one record in the first table (parent table) can be associated with multiple records in the second table (child table), but each record in the second table is associated with only one record in the first table.
-
-```sql
-CREATE TABLE department (
-    department_id INT PRIMARY KEY,
-    department_name VARCHAR(255)
-);
-
-CREATE TABLE employee (
-    employee_id INT PRIMARY KEY,
-    employee_name VARCHAR(255),
-    department_id INT,
-    FOREIGN KEY (department_id) REFERENCES department(department_id)
-);
-```
-- The department table stores information about departments.
-- The employee table stores information about employees.
-- The employee table has a foreign key (department_id) that references the primary key of the department table.
-- An employee belongs to one department, but a department can have multiple employees.
-
-## Many-to-One Relationship
-- A many-to-one relationship is essentially the reverse of a one-to-many relationship. In a many-to-one relationship, many records in the first table can be associated with one record in the second table.
-
-```sql
-CREATE TABLE department (
-    department_id INT PRIMARY KEY,
-    department_name VARCHAR(255)
-);
-
-CREATE TABLE employee (
-    employee_id INT PRIMARY KEY,
-    employee_name VARCHAR(255),
-    department_id INT,
-    FOREIGN KEY (department_id) REFERENCES department(department_id)
-);
-```
-- The department table stores information about departments.
-- The employee table stores information about employees.
-- The employee table has a foreign key (department_id) that references the primary key of the department table.
-- Many employees can belong to the same department, but each employee belongs to only one department.
-
-## Many-Many Relationship
-
-In a relational database, the relationship between the "author" and "book" tables is typically modeled using a foreign key. There are different types of relationships, and in this case, it sounds like a many-to-many relationship because one author can write many books, and one book can have multiple authors.
-
-To represent a many-to-many relationship between the "author" and "book" tables, you need a third table, often called a junction or linking table. This table serves to link authors to books, indicating which authors are associated with which books. Here's a basic schema for such a setup:
-
-```sql
-CREATE TABLE author (
-    author_id INT PRIMARY KEY,
-    author_name VARCHAR(255)
-);
-
-CREATE TABLE book (
-    book_id INT PRIMARY KEY,
-    book_title VARCHAR(255)
-);
-
-CREATE TABLE author_book (
-    author_id INT,
-    book_id INT,
-    PRIMARY KEY (author_id, book_id),
-    FOREIGN KEY (author_id) REFERENCES author(author_id),
-    FOREIGN KEY (book_id) REFERENCES book(book_id)
-);
-```
-- The author table stores information about authors.
-- The book table stores information about books.
-- The author_book table is the junction table that establishes the many-to-many relationship. It contains foreign keys referencing the primary keys of the author and book tables. The combination of author_id and book_id forms a composite primary key for this table.
-- One author can be associated with multiple books.
-- One book can have multiple authors.
-- The author_book table keeps track of these associations.
-
-```sql
--- Insert authors
-INSERT INTO author (author_id, author_name) VALUES
-(1, 'Author A'),
-(2, 'Author B'),
-(3, 'Author C');
-
--- Insert books
-INSERT INTO book (book_id, book_title) VALUES
-(101, 'Book X'),
-(102, 'Book Y'),
-(103, 'Book Z');
-
--- Associate authors with books
-INSERT INTO author_book (author_id, book_id) VALUES
-(1, 101),  -- Author A wrote Book X
-(1, 102),  -- Author A also wrote Book Y
-(2, 101),  -- Author B wrote Book X as well
-(3, 103);  -- Author C wrote Book Z
-```
 
 ## First level caching
 
@@ -1777,13 +1688,28 @@ INSERT INTO author_book (author_id, book_id) VALUES
 
 ## Query cache 
 
-## Eager Loading 
-
-## Lazy Loading
+## Lazy Loading vs Eager Loading
+- Lazy loading fetches related data only when it is accessed, reducing initial query cost but potentially causing N+1 query problems. 
+```java
+@OneToMany(fetch = FetchType.LAZY)
+```
+- Eager loading fetches related data immediately, avoiding multiple queries but possibly leading to over-fetching and performance issues. 
+```java
+@OneToMany(mappedBy = "user", fetch = FetchType.EAGER)
+```
+- In practice, lazy loading is preferred by default, with explicit fetching strategies like JOIN FETCH or entity graphs used to optimize queries.
+- Use Lazy Loading When
+    - Large collections (orders, logs)
+    - Data not always needed
+    - Performance-sensitive APIs
+- Use Eager Loading When
+    - Small, always-needed data
+    - One-to-one relationships 
 
 ## Cascade Type
 - Cascade Type defines how operations performed on a parent entity are automatically propagated to its related child entities.
 - Consider tables with parent child relationship, cascade types controls the behavior on what happens to related entities when action is performed on parent entity.
+
 #### Types 
 - PERSIST - When parent is saved → child is saved
 
@@ -1829,6 +1755,14 @@ cascade = CascadeType.ALL
 ## `get()`
 
 ## `load()` 
+
+## Optimistic Locking and Pessimistic Locking 
+- Optimistic locking allows concurrent access, but detect conflicts at update time.
+- It allows concurrent access and detects conflicts at the time of update using mechanisms like versioning, making it suitable for systems with low contention.
+- Optimistic locking scales well and gives better performance as there are no locks.
+- Pessimistic locking locks the data before modifying, preventing others from accessing it.
+- It locks row/table before access to prevent conflicts, ensuring correctness but reducing concurrency due to blocking and potential deadlocks.
+- Pessimistic Locking helps to conflicts early, but it is blocking and can cause potential Deadlocks.
 
 ## JPQL
 
