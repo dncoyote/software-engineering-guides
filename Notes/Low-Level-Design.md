@@ -1240,10 +1240,104 @@ public class Main {
 - The Adapter Pattern is a Structural Design Pattern that allows two incompatible interfaces to work together by converting the interface of one class into another interface that the client expects.
 - It translates one interface into another.
 
+```java
+// Payment Interface
+public interface PaymentProcessor {
+  void processPayment(double amount);
+}
+```
+
+```java
+// StripeAPI
+public class StripeAPI {
+
+  public void makePayment(double amount) {
+    System.out.println("Stripe payment processed: " + amount);
+  }
+}
+```
+
+```java
+// StripeAdapter
+public class StripeAdapter implements PaymentProcessor {
+
+  private StripeAPI stripe;
+
+  public StripeAdapter(StripeAPI stripe) {
+    this.stripe = stripe;
+  }
+
+  @Override
+  public void processPayment(double amount) {
+    // Translate the call
+    stripe.makePayment(amount);
+  }
+}
+```
+
+```java
+// Main class
+public class AdapterDemo{
+
+  public static void main(String[] args) {
+
+    StripeAPI stripeAPI = new StripeAPI();
+
+    PaymentProcessor processor = new StripeAdapter(stripeAPI);
+
+    processor.processPayment(500);
+  }
+}
+```
 ## Facade Pattern
 - The Facade Pattern is Structural Design Pattern that provides a simple, unified interface to a complex subsystem.
 - Instead of the client interacting with multiple classes, it interacts with one simplified interface (the facade) that coordinates everything
 
+```java
+// Facade class
+public class OrderFacade {
+
+  private InventoryService inventoryService;
+  private PaymentService paymentService;
+  private ShippingService shippingService;
+  private NotificationService notificationService;
+
+  public OrderFacade() {
+    inventoryService = new InventoryService();
+    paymentService = new PaymentService();
+    shippingService = new ShippingService();
+    notificationService = new NotificationService();
+  }
+
+  public void placeOrder(String product, double amount) {
+
+    if (inventoryService.checkStock(product)) {
+
+      paymentService.processPayment(amount);
+
+      shippingService.shipProduct(product);
+
+      notificationService.sendConfirmation();
+
+      System.out.println("Order placed successfully");
+    } else {
+      System.out.println("Product out of stock");
+    }
+  }
+}
+```
+```java
+// Main class
+public class FacadeDemo{
+
+  public static void main(String[] args) {
+
+    OrderFacade orderFacade = new OrderFacade();
+
+    orderFacade.placeOrder("Laptop", 75000);
+  }
+}
+```
 ## Behavioral Pattern
 - A Behavioral Pattern focuses on how objects communicate, collaborate, and distribute responsibilities within a system.
 - They deal with object interaction and behavior.
@@ -1252,3 +1346,153 @@ public class Main {
 - Strategy Pattern is used when we have multiple algorithms or behaviors for the same task. Instead of using conditionals, we define a common interface and implement each behavior as a separate class. The client selects the appropriate strategy at runtime. This follows Open/Closed Principle and improves extensibility and maintainability.
 - Instead of hardcoding behavior, you pass behavior as an object.
  
+```java
+// Payment Strategy
+public interface PaymentStrategy {
+  void pay(double amount);
+}
+```
+
+```java
+
+public class PaymentService {
+
+  private final PaymentStrategy paymentStrategy;
+
+  public PaymentService(PaymentStrategy paymentStrategy) {
+    this.paymentStrategy = paymentStrategy;
+  }
+
+  public void processPayment(double amount) {
+    paymentStrategy.pay(amount);
+  }
+}
+```
+
+```java
+// Payment Strategy implementations
+
+public class CardPaymentStrategy implements PaymentStrategy {
+
+  @Override
+  public void pay(double amount) {
+    System.out.println("Processing Card payment: " + amount);
+  }
+}
+
+
+public class UpiPaymentStrategy implements PaymentStrategy {
+
+  @Override
+  public void pay(double amount) {
+    System.out.println("Processing UPI payment: " + amount);
+  }
+}
+
+
+public class WalletPaymentStrategy implements PaymentStrategy {
+
+  @Override
+  public void pay(double amount) {
+    System.out.println("Processing Wallet payment: " + amount);
+  }
+}
+```
+```java
+// Main class
+public class Main {
+
+  public static void main(String[] args) {
+
+    PaymentStrategy strategy = new UpiPaymentStrategy(); // runtime decision
+
+    PaymentService service = new PaymentService(strategy);
+    service.processPayment(1000);
+  }
+}
+```
+
+## Observer Pattern
+- Observer Pattern defines a one-to-many dependency when one object (subject) changes state, all its dependents (observers) are notified automatically. 
+- In this pattern a subject notifies multiple observers when an event occurs. It helps in decoupling components and is widely used in event-driven systems such as notifications, logging, and messaging systems.
+
+```java
+
+public interface Observer {
+  void update(String event);
+}
+```
+
+```java
+// Observer implementations
+
+public class AnalyticsService implements Observer {
+
+  @Override
+  public void update(String event) {
+    System.out.println("Analytics tracked: " + event);
+  }
+}
+
+
+public class EmailService implements Observer {
+
+  @Override
+  public void update(String event) {
+    System.out.println("Email sent: " + event);
+  }
+
+
+public class SmsService implements Observer {
+
+  @Override
+  public void update(String event) {
+    System.out.println("SMS sent: " + event);
+  }
+}
+```
+
+```java
+// Order Service
+public class OrderService {
+
+  private final List<Observer> observers = new ArrayList<>();
+
+  public void addObserver(Observer observer) {
+    observers.add(observer);
+  }
+
+  public void removeObserver(Observer observer) {
+    observers.remove(observer);
+  }
+
+  public void placeOrder() {
+    System.out.println("Order placed");
+
+    notifyObservers("Order placed");
+  }
+
+  private void notifyObservers(String event) {
+    for (Observer observer : observers) {
+      observer.update(event);
+    }
+  }
+}
+```
+
+```java
+// Main class
+public class Main {
+
+  public static void main(String[] args) {
+
+    OrderService orderService = new OrderService();
+
+    orderService.addObserver(new EmailService());
+    orderService.addObserver(new SmsService());
+    orderService.addObserver(new AnalyticsService());
+
+    orderService.placeOrder();
+  }
+}
+```
