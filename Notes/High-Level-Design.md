@@ -260,3 +260,21 @@ A database is an organized collection of data that can be efficiently accessed, 
 
 ## Indexing in Databases
 - An index is a data structure (usually a B-tree or hash) that allows the database to quickly locate rows in a table without scanning every row.
+
+## Service Oriented Architecture
+- Service-Oriented Architecture (SOA) is an architectural style where an application is built as a collection of loosely coupled services that communicate over a network using well-defined interfaces (usually APIs).
+
+## Cloud Ready Architecture
+- Cloud-Ready Architecture is a system design approach where an application is built so it can be easily deployed, scaled, and operated in a cloud environment (like Amazon Web Services, Microsoft Azure, or Google Cloud Platform) without major redesign.
+- In Cloud environments, Infrastructure is dynamic and ephemeral, Scaling is elastic and Failures are expected.
+- So we must design the application to Adapt to change, Scale automatically and Handle failures gracefully.
+
+```
+Client
+   ↓
+Load Balancer
+   ↓
+Multiple App Instances (auto-scaled)
+   ↓
+Database (managed service)
+```

@@ -264,7 +264,7 @@ CREATE INDEX idx_users_email ON users(email);
 - Advantages
     - Faster `SELECT`, `WHERE`, `JOIN`, `ORDER BY`
 - Disadvantage
-    - Slower `UPDATE`, `INSERT`
+    - Slower `UPDATE`, `INSERT` - as these operations also involves updating the existing index.
 #### Composite Index
 - A Composite Index (also called multi-column index) is an index created on multiple columns together.
 
@@ -293,7 +293,66 @@ CREATE UNIQUE INDEX idx_email ON users(email);
 ```
 #### Covering Index
 - A Covering Index is an index that contains all the columns required to satisfy a query, so the database does NOT need to access the table.
+- The results are returned directly from the index tree, this avoids costly table data lookups.
 
+## Database Optimization Techniques 
+### Query-Level Optimization
+- Avoid `SELECT *` - Fetch only needed columns → less I/O, better index usage.
+- Use proper joins.
+- Replace subqueries when needed.
+- Use `EXPLAIN`
+`EXPLAIN SELECT * FROM orders WHERE user_id = 1;`
+- Index the tables - use Basic Index, Composite Index, Partial Index and Covering Index. 
+- Avoid N+1 Problems using JOIN / batch fetch or DTO Projections.
+- Use Pagination - but avoid deep offsets.
+### Schema Design
+- Normalization
+- Choose correct data types.
+- Use Constraints to act as guardrails.
+### Caching
+- Cache frequently fetched data.
+- Use Application Cache (Redis) and DB Cache.
+- Use adequate Cache Strategy.
+### Read/Write Separation
+- Use Primary for writes and use Replicas for reads
+### Database
+- Partition the same DB.
+- Shard the DB to multiple DB's.
+
+
+## Partitioning
+- Partitioning is process of splitting a large table into smaller physical pieces (partitions) while keeping it logically as one table.
+- This is unlike sharding, here the pieces stays within the same database instance.
+- Consider table with 100M rows, without partitioning this is a huge table that can result in slow retrieves. With partitioning the table becomes transformed to the following structure and the query will touch only the relevant partitions.
+
+```
+orders
+ ├── orders_2024
+ ├── orders_2025
+ ├── orders_2026
+```
+### Types
+- Range Partitioning
+
+```sql
+CREATE TABLE orders_2024
+PARTITION OF orders
+FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
+
+CREATE TABLE orders_2025
+PARTITION OF orders
+FOR VALUES FROM ('2025-01-01') TO ('2026-01-01');
+```
+- List Partitioning
+
+```sql
+CREATE TABLE users_india
+PARTITION OF users FOR VALUES IN ('India');
+
+CREATE TABLE users_usa
+PARTITION OF users FOR VALUES IN ('USA');
+```
+- Hash Partitioning
 ## Sharding
 - Sharding is a technique of splitting a large dataset across multiple database nodes (shards) so that each node stores only a subset of the data.
 - It enables horizontal scaling, allowing applications to handle increased data volume and high traffic

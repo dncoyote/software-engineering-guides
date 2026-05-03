@@ -1338,6 +1338,13 @@ public class FacadeDemo{
   }
 }
 ```
+
+## Decorator Pattern
+- Decorator Pattern allows you to add behavior to an object dynamically without modifying its class.
+- Instead of changing a class, you wrap it with another object that adds functionality
+- It works by wrapping the object with another object that implements the same interface and adds additional functionality.
+- It helps avoid class explosion and follows Open/Closed Principle.
+
 ## Behavioral Pattern
 - A Behavioral Pattern focuses on how objects communicate, collaborate, and distribute responsibilities within a system.
 - They deal with object interaction and behavior.
