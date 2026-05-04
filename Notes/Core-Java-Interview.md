@@ -3656,6 +3656,25 @@ public record Rectangle(double length, double width) {
     - Projections
     - Configuration properties
 
+## Text Blocks
+- Text Blocks are a way to define multi-line string literals using triple quotes `"""`.
+- Text blocks preserve formatting, minimal escaping and is multi-line by default making it suitable to use for JSON Strings, HTML, SQL queries and Long Messages.
+
+```java
+// Before
+String json = "{\n" +
+              "  \"name\": \"John\",\n" +
+              "  \"age\": 22\n" +
+              "}";
+
+// After
+String json = """
+    {
+      "name": "John",
+      "age": 22
+    }
+    """;
+```
 
 ## Concurrency
 - Managing multiple tasks at the same time (interleaved execution)
@@ -4549,6 +4568,7 @@ int result = switch(day) {
     default -> 0;
 };
 ```
+- Text Blocks
 - Strong encapsulation in JVM by hiding internal API's to make Java systems safer.
 
 ## Java 21 
