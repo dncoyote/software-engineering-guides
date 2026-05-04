@@ -3545,9 +3545,17 @@ var price = 10.5;        // inferred as double
 - A method reference is a shorthand syntax for a lambda expression that calls an existing method.
 - It improves readability and support functional programming
 ```java
+// instead of 
 x -> System.out.println(x)
 
+// use
 System.out::println
+
+// instead of
+list.forEach(x -> System.out.println(x));
+
+//use
+list.forEach(System.out::println);
 ```
 
 ## Sealed Class
@@ -4470,6 +4478,106 @@ public class BasicExample {
 
 ## Virtual Threads
 - A Virtual Thread is a lightweight thread managed by the JVM, not the OS.
-- Traditional threads are managed by OS and are resource heavy.
 - It is an important feature of Java 21
+- Traditional threads are managed by OS and are resource heavy and limited (thousands).
+- Virtual Threads are managed by JVM and are lightweight (millions) and perfect for IO bound calls (Spring API's, DB calls).
 
+```java
+try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
+    executor.submit(() -> {
+        System.out.println("Running in virtual thread");
+    });
+}
+```
+
+## Java 8
+- Most important release in modern Java. It fundamentally changed how we write code—moving from imperative → declarative/functional style.
+- Lambda Expressions
+- Functional Interfaces 
+- Streams API
+- Method Reference
+- Default and Static Methods in Interfaces
+- New Date and Time API
+
+```java
+LocalDate date = LocalDate.now();
+LocalTime time = LocalTime.now();
+LocalDateTime dt = LocalDateTime.now();
+```
+- Optional
+- `forEach` on Collections
+ 
+```java
+list.forEach(x -> System.out.println(x));
+```
+- CompletableFuture
+
+## Java 11 
+- `var` in lambda functions
+
+```java
+(var a, var b) -> a + b
+```
+- New String API's
+
+```java
+"  hello  ".strip();      // better than trim (Unicode aware)
+"".isBlank();             // checks empty + whitespace
+"line1\nline2".lines();   // stream of lines
+"hi".repeat(3);           // "hihihi"
+```
+- Files API Enhancements
+- `HTTP Client` with `HttpURLConnection`
+- Improved GC.
+
+## Java 17 
+- Sealed Classes
+- Records
+- Pattern Matching for `instanceof` for eliminating casting boilerplate
+
+```java
+if (obj instanceof String s) {
+    System.out.println(s.length());
+}
+```
+- Switch expressions
+
+```java
+int result = switch(day) {
+    case MONDAY -> 1;
+    case TUESDAY -> 2;
+    default -> 0;
+};
+```
+- Strong encapsulation in JVM by hiding internal API's to make Java systems safer.
+
+## Java 21 
+- Virtual Threads (Project Loom)
+- Structured concurrency
+- Record Patterns
+
+```java
+if (obj instanceof User(String name, int age)) {
+    System.out.println(name);
+}
+```
+- Pattern Matching for Switch
+
+```java
+switch (obj) {
+    case String s -> System.out.println(s);
+    case Integer i -> System.out.println(i);
+    default -> {}
+}
+```
+- Sequenced Collections
+
+```java
+list.getFirst();
+list.getLast();
+```
+
+## Java 25 
+- Scoped values (replacement for ThreadLocal)
+- Foreign Function and Memory API -  call native libraries without using JNI.
+- GC Improvements
